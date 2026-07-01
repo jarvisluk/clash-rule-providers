@@ -1,0 +1,10 @@
+payload:
+  - DOMAIN-SUFFIX,netflix.com
+  - DOMAIN-SUFFIX,netflix.net
+  - DOMAIN-SUFFIX,nflxext.com
+  - DOMAIN-SUFFIX,nflximg.net
+  - DOMAIN-SUFFIX,nflximg.com
+  - DOMAIN-SUFFIX,nflxso.net
+  - DOMAIN-SUFFIX,nflxvideo.net
+  - DOMAIN-SUFFIX,fast.com
+  - DOMAIN-KEYWORD,netflix

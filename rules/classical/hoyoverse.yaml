@@ -1,0 +1,11 @@
+payload:
+  - DOMAIN-SUFFIX,hoyoverse.com
+  - DOMAIN-SUFFIX,hoyolab.com
+  - DOMAIN-SUFFIX,mihoyo.com
+  - DOMAIN-SUFFIX,mihoyogift.com
+  - DOMAIN-SUFFIX,genshinimpact.com
+  - DOMAIN-SUFFIX,honkaiimpact3.com
+  - DOMAIN-SUFFIX,honkaistarrail.com
+  - DOMAIN-SUFFIX,zenlesszonezero.com
+  - DOMAIN-KEYWORD,hoyoverse
+  - DOMAIN-KEYWORD,mihoyo

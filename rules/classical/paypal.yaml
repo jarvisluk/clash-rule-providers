@@ -1,0 +1,9 @@
+payload:
+  - DOMAIN-SUFFIX,paypal.com
+  - DOMAIN-SUFFIX,paypal.me
+  - DOMAIN-SUFFIX,paypalobjects.com
+  - DOMAIN-SUFFIX,paypal-community.com
+  - DOMAIN-SUFFIX,paypal-prepaid.com
+  - DOMAIN-SUFFIX,paypalbenefits.com
+  - DOMAIN-SUFFIX,paypalcredit.com
+  - DOMAIN-SUFFIX,venmo.com

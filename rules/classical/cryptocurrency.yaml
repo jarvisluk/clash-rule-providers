@@ -1,0 +1,14 @@
+payload:
+  - DOMAIN-SUFFIX,binance.com
+  - DOMAIN-SUFFIX,okx.com
+  - DOMAIN-SUFFIX,coinbase.com
+  - DOMAIN-SUFFIX,kraken.com
+  - DOMAIN-SUFFIX,bybit.com
+  - DOMAIN-SUFFIX,bitget.com
+  - DOMAIN-SUFFIX,coinmarketcap.com
+  - DOMAIN-SUFFIX,coingecko.com
+  - DOMAIN-SUFFIX,etherscan.io
+  - DOMAIN-SUFFIX,solscan.io
+  - DOMAIN-SUFFIX,tronscan.org
+  - DOMAIN-SUFFIX,metamask.io
+  - DOMAIN-SUFFIX,walletconnect.com

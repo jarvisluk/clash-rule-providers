@@ -1,0 +1,9 @@
+payload:
+  - DOMAIN-SUFFIX,x.com
+  - DOMAIN-SUFFIX,twitter.com
+  - DOMAIN-SUFFIX,t.co
+  - DOMAIN-SUFFIX,twimg.com
+  - DOMAIN-SUFFIX,tweetdeck.com
+  - DOMAIN-SUFFIX,pscp.tv
+  - DOMAIN-SUFFIX,periscope.tv
+  - DOMAIN-KEYWORD,twitter

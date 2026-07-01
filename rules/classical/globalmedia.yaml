@@ -1,0 +1,14 @@
+payload:
+  - DOMAIN-SUFFIX,hulu.com
+  - DOMAIN-SUFFIX,huluim.com
+  - DOMAIN-SUFFIX,max.com
+  - DOMAIN-SUFFIX,hbomax.com
+  - DOMAIN-SUFFIX,hbo.com
+  - DOMAIN-SUFFIX,primevideo.com
+  - DOMAIN-SUFFIX,media-amazon.com
+  - DOMAIN-SUFFIX,peacocktv.com
+  - DOMAIN-SUFFIX,paramountplus.com
+  - DOMAIN-SUFFIX,twitch.tv
+  - DOMAIN-SUFFIX,twitchcdn.net
+  - DOMAIN-SUFFIX,viu.com
+  - DOMAIN-SUFFIX,abema.tv
