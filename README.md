@@ -8,15 +8,17 @@ each payload item is a normal route rule without the final policy target.
 
 ## Provider URL
 
-Use raw GitHub URLs:
+Use jsDelivr URLs. They avoid bootstrapping rule updates through the GitHub
+route itself.
 
 ```yaml
-https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/rules/classical/spotify.yaml
+https://cdn.jsdelivr.net/gh/jarvisluk/clash-rule-providers@main/rules/classical/spotify.yaml
 ```
 
 ## Example
 
-See [examples/mihomo.yaml](examples/mihomo.yaml) for a ready-to-copy snippet.
+See [examples/mihomo.yaml](examples/mihomo.yaml) for a minimal ready-to-copy
+snippet.
 
 Put these `RULE-SET` rules near the top of your Clash rules list. Mihomo
 matches rules from top to bottom, so earlier custom providers override broad
