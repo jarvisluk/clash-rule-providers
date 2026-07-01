@@ -1,51 +1,51 @@
 rule-providers:
-  JR-Spotify:
+  Personal-Spotify:
     type: http
     behavior: classical
     format: yaml
     url: https://cdn.jsdelivr.net/gh/jarvisluk/clash-rule-providers@main/rules/classical/spotify.yaml
-    path: ./ruleset/jarvisluk/spotify.yaml
+    path: ./ruleset/personal/spotify.yaml
     interval: 86400
-  JR-OpenAI:
+  Personal-OpenAI:
     type: http
     behavior: classical
     format: yaml
     url: https://cdn.jsdelivr.net/gh/jarvisluk/clash-rule-providers@main/rules/classical/openai.yaml
-    path: ./ruleset/jarvisluk/openai.yaml
+    path: ./ruleset/personal/openai.yaml
     interval: 86400
-  JR-Claude:
+  Personal-Claude:
     type: http
     behavior: classical
     format: yaml
     url: https://cdn.jsdelivr.net/gh/jarvisluk/clash-rule-providers@main/rules/classical/claude.yaml
-    path: ./ruleset/jarvisluk/claude.yaml
+    path: ./ruleset/personal/claude.yaml
     interval: 86400
-  JR-Gemini:
+  Personal-Gemini:
     type: http
     behavior: classical
     format: yaml
     url: https://cdn.jsdelivr.net/gh/jarvisluk/clash-rule-providers@main/rules/classical/gemini.yaml
-    path: ./ruleset/jarvisluk/gemini.yaml
+    path: ./ruleset/personal/gemini.yaml
     interval: 86400
-  JR-Cursor:
+  Personal-Cursor:
     type: http
     behavior: classical
     format: yaml
     url: https://cdn.jsdelivr.net/gh/jarvisluk/clash-rule-providers@main/rules/classical/cursor.yaml
-    path: ./ruleset/jarvisluk/cursor.yaml
+    path: ./ruleset/personal/cursor.yaml
     interval: 86400
-  JR-GitHub:
+  Personal-GitHub:
     type: http
     behavior: classical
     format: yaml
     url: https://cdn.jsdelivr.net/gh/jarvisluk/clash-rule-providers@main/rules/classical/github.yaml
-    path: ./ruleset/jarvisluk/github.yaml
+    path: ./ruleset/personal/github.yaml
     interval: 86400
 
 rules:
-  - RULE-SET,JR-Spotify,💿 Spotify
-  - RULE-SET,JR-OpenAI,🤖 OpenAI
-  - RULE-SET,JR-Claude,🤖 Claude
-  - RULE-SET,JR-Gemini,🤖 Gemini
-  - RULE-SET,JR-Cursor,🖱 Cursor
-  - RULE-SET,JR-GitHub,🐙 GitHub
+  - RULE-SET,Personal-Spotify,💿 Spotify
+  - RULE-SET,Personal-OpenAI,🤖 OpenAI
+  - RULE-SET,Personal-Claude,🤖 Claude
+  - RULE-SET,Personal-Gemini,🤖 Gemini
+  - RULE-SET,Personal-Cursor,🖱 Cursor
+  - RULE-SET,Personal-GitHub,🐙 GitHub
