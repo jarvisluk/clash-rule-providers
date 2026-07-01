@@ -1,0 +1,8 @@
+payload:
+  - DOMAIN-SUFFIX,cursor.com
+  - DOMAIN-SUFFIX,cursor.sh
+  - DOMAIN-SUFFIX,cursorapi.com
+  - DOMAIN-SUFFIX,anysphere.co
+  - DOMAIN-SUFFIX,anysphere.cursor.sh
+  - DOMAIN-KEYWORD,cursor
+  - DOMAIN-KEYWORD,anysphere

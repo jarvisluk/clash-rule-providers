@@ -1,0 +1,51 @@
+rule-providers:
+  JR-Spotify:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/rules/classical/spotify.yaml
+    path: ./ruleset/jarvisluk/spotify.yaml
+    interval: 86400
+  JR-OpenAI:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/rules/classical/openai.yaml
+    path: ./ruleset/jarvisluk/openai.yaml
+    interval: 86400
+  JR-Claude:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/rules/classical/claude.yaml
+    path: ./ruleset/jarvisluk/claude.yaml
+    interval: 86400
+  JR-Gemini:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/rules/classical/gemini.yaml
+    path: ./ruleset/jarvisluk/gemini.yaml
+    interval: 86400
+  JR-Cursor:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/rules/classical/cursor.yaml
+    path: ./ruleset/jarvisluk/cursor.yaml
+    interval: 86400
+  JR-GitHub:
+    type: http
+    behavior: classical
+    format: yaml
+    url: https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/rules/classical/github.yaml
+    path: ./ruleset/jarvisluk/github.yaml
+    interval: 86400
+
+rules:
+  - RULE-SET,JR-Spotify,💿 Spotify
+  - RULE-SET,JR-OpenAI,🤖 OpenAI
+  - RULE-SET,JR-Claude,🤖 Claude
+  - RULE-SET,JR-Gemini,🤖 Gemini
+  - RULE-SET,JR-Cursor,🖱 Cursor
+  - RULE-SET,JR-GitHub,🐙 GitHub
