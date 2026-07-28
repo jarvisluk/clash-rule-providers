@@ -6,4 +6,7 @@ payload:
   - DOMAIN-SUFFIX,tweetdeck.com
   - DOMAIN-SUFFIX,pscp.tv
   - DOMAIN-SUFFIX,periscope.tv
+  - DOMAIN-SUFFIX,x.ai
+  - DOMAIN-SUFFIX,grok.com
   - DOMAIN-KEYWORD,twitter
+  - DOMAIN-KEYWORD,grok
