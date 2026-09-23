@@ -32,3 +32,15 @@ python3 scripts/validate.py
 
 The validator checks that every rule file has a `payload` list and that each
 classical rule omits the final policy target.
+
+## Shadowrocket
+
+Import [shadowrocket/ruleproviders.conf](shadowrocket/ruleproviders.conf) as a
+separate Shadowrocket configuration. It contains the current rules from all
+31 classical providers with their Clash default policies, and does not contain
+proxy nodes. Keep the existing node subscription in Shadowrocket.
+
+After changing any provider YAML, run `python3 scripts/build_shadowrocket.py`
+and commit the regenerated file. Shadowrocket does not read Clash
+`rule-providers` YAML directly; this config is a generated snapshot, not a
+live remote rule-provider subscription.
