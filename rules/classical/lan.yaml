@@ -4,6 +4,10 @@ payload:
   - DOMAIN-SUFFIX,lan
   - DOMAIN-SUFFIX,home.arpa
   - DOMAIN-SUFFIX,kooka-haddock.ts.net
+  - DOMAIN-SUFFIX,ibllc.com
+  - DOMAIN-SUFFIX,interactivebrokers.com
+  - DOMAIN-SUFFIX,interactivebrokers.com.hk
+  - DOMAIN-SUFFIX,ibkr.com
   - IP-CIDR,0.0.0.0/8,no-resolve
   - IP-CIDR,10.0.0.0/8,no-resolve
   - IP-CIDR,100.64.0.0/10,no-resolve
