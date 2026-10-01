@@ -8,6 +8,12 @@ payload:
   - DOMAIN-SUFFIX,interactivebrokers.com
   - DOMAIN-SUFFIX,interactivebrokers.com.hk
   - DOMAIN-SUFFIX,ibkr.com
+  - IP-CIDR,103.38.90.0/23,no-resolve
+  - IP-CIDR,202.1.6.0/24,no-resolve
+  - IP-CIDR,64.190.196.0/23,no-resolve
+  - IP-CIDR,209.127.240.0/23,no-resolve
+  - IP-CIDR,8.17.22.0/24,no-resolve
+  - IP-CIDR,63.86.206.0/24,no-resolve
   - IP-CIDR,0.0.0.0/8,no-resolve
   - IP-CIDR,10.0.0.0/8,no-resolve
   - IP-CIDR,100.64.0.0/10,no-resolve
