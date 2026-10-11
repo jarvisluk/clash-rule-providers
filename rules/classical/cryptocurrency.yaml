@@ -4,6 +4,7 @@ payload:
   - DOMAIN-SUFFIX,coinbase.com
   - DOMAIN-SUFFIX,kraken.com
   - DOMAIN-SUFFIX,bybit.com
+  - DOMAIN-SUFFIX,bybitgeorgia.ge
   - DOMAIN-SUFFIX,bitget.com
   - DOMAIN-SUFFIX,coinmarketcap.com
   - DOMAIN-SUFFIX,coingecko.com

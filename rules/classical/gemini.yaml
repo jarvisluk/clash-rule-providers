@@ -6,3 +6,24 @@ payload:
   - DOMAIN-SUFFIX,bard.google.com
   - DOMAIN-KEYWORD,gemini
   - DOMAIN-KEYWORD,generativelanguage
+
+  # Antigravity website, feature flags, and update services.
+  - DOMAIN-KEYWORD,antigravity
+  # Antigravity / Code Assist APIs (including daily and sandbox endpoints).
+  - DOMAIN,cloudcode-pa.googleapis.com
+  - DOMAIN,daily-cloudcode-pa.googleapis.com
+  - DOMAIN,canary-cloudcode-pa.googleapis.com
+  - DOMAIN,autopush-cloudcode-pa.sandbox.googleapis.com
+  - DOMAIN,preprod-daily-cloudcode-pa.sandbox.googleapis.com
+  - DOMAIN,aicode.googleapis.com
+  - DOMAIN,autopush-aicode.sandbox.googleapis.com
+  - DOMAIN,jetski-webchannel.googleapis.com
+  # Enterprise endpoints: https://www.antigravity.google/docs/enterprise
+  - DOMAIN,businessaicode.googleapis.com
+  - DOMAIN,businessaicode.mtls.googleapis.com
+  - DOMAIN,discoveryengine.googleapis.com
+  - DOMAIN,us-discoveryengine.googleapis.com
+  - DOMAIN,eu-discoveryengine.googleapis.com
+  - DOMAIN,discoveryengine.mtls.googleapis.com
+  - DOMAIN,us-discoveryengine.mtls.googleapis.com
+  - DOMAIN,eu-discoveryengine.mtls.googleapis.com
