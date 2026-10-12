@@ -40,7 +40,41 @@ separate Shadowrocket configuration. It contains the current rules from all
 31 classical providers with their Clash default policies, and does not contain
 proxy nodes. Keep the existing node subscription in Shadowrocket.
 
-After changing any provider YAML, run `python3 scripts/build_shadowrocket.py`
-and commit the regenerated file. Shadowrocket does not read Clash
-`rule-providers` YAML directly; this config is a generated snapshot, not a
-live remote rule-provider subscription.
+### Automatic sync
+
+After changes to `rules/classical/*.yaml` are pushed to `main`, the
+[Sync Shadowrocket workflow](.github/workflows/sync-shadowrocket.yml) validates
+the providers, regenerates the configuration, and commits it automatically.
+No generated commit is created when the output is unchanged. Pull requests
+are validated without publishing. The workflow can also be run manually
+from GitHub Actions.
+
+Clash and Shadowrocket share the repository's personal rules as their source.
+Local-only Clash edits, runtime policy selections, and third-party rule
+providers are not synchronized by this workflow. Unsupported Shadowrocket
+rule types or new provider categories fail validation and must be added to
+the generator explicitly.
+
+On the phone, add or update this URL as a remote configuration and select it:
+
+```text
+https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/shadowrocket/ruleproviders.conf
+```
+
+The generated `[General]` section includes this address as `update-url`.
+In Shadowrocket's Settings, enable automatic background updates for
+**Configuration** and set the interval to **1 day**. In iOS Settings > General
+> Background App Refresh, allow Shadowrocket to refresh. Updating the old
+remote configuration once installs the new `update-url`; if it was imported
+as a local file, add it from the URL above instead.
+
+Publication happens after the GitHub workflow completes; the phone fetches
+updates on its next scheduled refresh, not immediately. iOS may delay or
+prevent background tasks, especially after force-quitting the app or rebooting.
+To fetch immediately, use the configuration's **Update Configuration** action.
+Remote configuration updates replace local edits to that configuration.
+Keep node subscriptions separate as before.
+
+See the [Shadowrocket manual's automatic update instructions](https://github.com/LOWERTOP/Shadowrocket#自动更新).
+For local generation, install `PyYAML==6.0.3` and run
+`python3 scripts/build_shadowrocket.py`.

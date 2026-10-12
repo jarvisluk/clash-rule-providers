@@ -3,10 +3,13 @@
 
 from pathlib import Path
 
+import yaml
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROVIDERS = ROOT / "rules" / "classical"
 OUTPUT = ROOT / "shadowrocket" / "ruleproviders.conf"
+UPDATE_URL = "https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/shadowrocket/ruleproviders.conf"
 
 # Match the initial selections in the user's Clash service groups.
 DIRECT = {
@@ -33,17 +36,25 @@ def build() -> str:
         "# Generated from jarvisluk/clash-rule-providers rules/classical/*.yaml.",
         "# Node subscription is configured separately in Shadowrocket.",
         "[General]",
+        f"update-url = {UPDATE_URL}",
         "",
         "[Rule]",
     ]
     for name in ORDER:
         lines.append(f"# {name}")
-        source = (PROVIDERS / f"{name}.yaml").read_text()
-        for raw in source.splitlines():
-            if not raw.startswith("  - "):
-                continue
-            fields = raw[4:].split(",")
-            if fields[0] not in SUPPORTED or len(fields) < 2:
+        source = yaml.safe_load((PROVIDERS / f"{name}.yaml").read_text())
+        payload = source.get("payload") if isinstance(source, dict) else None
+        if not isinstance(payload, list):
+            raise ValueError(f"Missing payload list in {name}")
+        for raw in payload:
+            if not isinstance(raw, str):
+                raise ValueError(f"Invalid rule in {name}: {raw!r}")
+            fields = [field.strip() for field in raw.split(",")]
+            cidr = fields[0] in {"IP-CIDR", "IP-CIDR6"}
+            valid_options = len(fields) == 2 or (
+                cidr and len(fields) == 3 and fields[2] == "no-resolve"
+            )
+            if fields[0] not in SUPPORTED or not valid_options or not fields[1]:
                 raise ValueError(f"Unsupported rule in {name}: {raw}")
             fields.insert(2, "DIRECT" if name in DIRECT else "PROXY")
             lines.append(",".join(fields))
