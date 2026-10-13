@@ -1,4 +1,4 @@
-name: Sync Shadowrocket
+name: Sync client configurations
 
 on:
   push:
@@ -7,12 +7,20 @@ on:
       - 'rules/classical/**'
       - 'scripts/build_shadowrocket.py'
       - 'scripts/validate.py'
+      - 'scripts/dns_policy.py'
+      - 'scripts/build_dns.py'
+      - 'policy/**'
+      - 'tests/**'
       - '.github/workflows/sync-shadowrocket.yml'
   pull_request:
     paths:
       - 'rules/classical/**'
       - 'scripts/build_shadowrocket.py'
       - 'scripts/validate.py'
+      - 'scripts/dns_policy.py'
+      - 'scripts/build_dns.py'
+      - 'policy/**'
+      - 'tests/**'
       - '.github/workflows/sync-shadowrocket.yml'
   workflow_dispatch:
 
@@ -35,6 +43,9 @@ jobs:
       - run: python -m pip install PyYAML==6.0.3
       - run: python scripts/validate.py
       - run: python scripts/build_shadowrocket.py
+      - run: python scripts/build_dns.py
+      - run: python -m unittest discover -s tests
+      - run: node tests/dns_override.test.js
 
   publish:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -51,7 +62,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install PyYAML==6.0.3
-      - name: Generate and publish current rules
+      - name: Generate and publish current client configurations
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -60,12 +71,15 @@ jobs:
             git reset --hard origin/main
             python scripts/validate.py
             python scripts/build_shadowrocket.py
-            git add shadowrocket/ruleproviders.conf
+            python scripts/build_dns.py
+            python -m unittest discover -s tests
+            node tests/dns_override.test.js
+            git add shadowrocket/ruleproviders.conf mihomo/dns.yaml mihomo/dns-override.js flclash/dns-override.js
             if git diff --cached --quiet; then
-              echo 'Shadowrocket configuration is already current.'
+              echo 'Client configurations are already current.'
               exit 0
             fi
-            git commit -m 'chore(shadowrocket): sync generated rules'
+            git commit -m 'chore(config): sync generated client configurations'
             if git push origin HEAD:main; then
               exit 0
             fi

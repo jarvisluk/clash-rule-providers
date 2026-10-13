@@ -5,6 +5,8 @@ from pathlib import Path
 
 import yaml
 
+from dns_policy import load_policy, shadowrocket_general, shadowrocket_hosts
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PROVIDERS = ROOT / "rules" / "classical"
@@ -29,6 +31,7 @@ SUPPORTED = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6"}
 
 
 def build() -> str:
+    policy = load_policy()
     actual = {path.stem for path in PROVIDERS.glob("*.yaml")}
     if actual != set(ORDER):
         raise ValueError(f"Provider mismatch: missing={actual - set(ORDER)}, extra={set(ORDER) - actual}")
@@ -37,10 +40,15 @@ def build() -> str:
         "# Node subscription is configured separately in Shadowrocket.",
         "[General]",
         f"update-url = {UPDATE_URL}",
+        *shadowrocket_general(policy),
         "",
         "[Rule]",
     ]
     for name in ORDER:
+        if name == "openai":
+            # Known public DNS endpoints are hijacked above; reject any other
+            # plaintext DNS that remains. Private LAN destinations precede this.
+            lines.append("DST-PORT,53,REJECT")
         lines.append(f"# {name}")
         source = yaml.safe_load((PROVIDERS / f"{name}.yaml").read_text())
         payload = source.get("payload") if isinstance(source, dict) else None
@@ -58,7 +66,7 @@ def build() -> str:
                 raise ValueError(f"Unsupported rule in {name}: {raw}")
             fields.insert(2, "DIRECT" if name in DIRECT else "PROXY")
             lines.append(",".join(fields))
-    lines.extend(["GEOIP,CN,DIRECT", "FINAL,PROXY", ""])
+    lines.extend(["GEOIP,CN,DIRECT", "FINAL,PROXY", "", *shadowrocket_hosts(policy), ""])
     return "\n".join(lines)
 
 
