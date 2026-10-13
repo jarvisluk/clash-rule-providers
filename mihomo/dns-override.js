@@ -1,5 +1,5 @@
 // BEGIN SHARED DNS POLICY (generated; edit policy/dns.yaml)
-function applyPersonalDnsPolicy(config) {
+function applyPersonalDnsPolicy(config, appOwnsTun = false) {
   const shared = {
   "ipv6": true,
   "dns": {
@@ -19,25 +19,23 @@ function applyPersonalDnsPolicy(config) {
       "+.market.xiaomi.com",
       "localhost.ptlogin2.qq.com",
       "*.msftncsi.com",
-      "www.msftconnecttest.com",
-      "+.quickconnect.cn",
-      "+.quickconnect.to"
+      "www.msftconnecttest.com"
     ],
     "default-nameserver": [
       "https://223.5.5.5/dns-query",
       "https://223.6.6.6/dns-query"
     ],
     "proxy-server-nameserver": [
-      "https://223.5.5.5/dns-query#DIRECT",
-      "https://223.6.6.6/dns-query#DIRECT"
+      "https://dns.alidns.com/dns-query#DIRECT",
+      "https://doh.pub/dns-query#DIRECT"
     ],
     "nameserver": [
-      "https://1.1.1.1/dns-query#DNS-Proxy",
-      "https://8.8.8.8/dns-query#DNS-Proxy"
+      "https://1.1.1.1/dns-query#Final",
+      "https://8.8.8.8/dns-query#Final"
     ],
     "direct-nameserver": [
-      "https://1.1.1.1/dns-query#DNS-Proxy",
-      "https://8.8.8.8/dns-query#DNS-Proxy"
+      "https://dns.alidns.com/dns-query#DIRECT",
+      "https://doh.pub/dns-query#DIRECT"
     ],
     "direct-nameserver-follow-policy": true,
     "nameserver-policy": {
@@ -52,16 +50,6 @@ function applyPersonalDnsPolicy(config) {
     "use-hosts": true,
     "use-system-hosts": true
   },
-  "proxy-groups": [
-    {
-      "name": "DNS-Proxy",
-      "type": "select",
-      "include-all": true,
-      "exclude-type": "Direct|Reject|Compatible|Pass|Dns",
-      "exclude-filter": "(?i)剩余流量|套餐到期|距离下次|最新网址|remain:|used:|reset in:",
-      "empty-fallback": "REJECT"
-    }
-  ],
   "tun": {
     "enable": true,
     "auto-route": true,
@@ -77,9 +65,9 @@ function applyPersonalDnsPolicy(config) {
   // Replace the DNS object: vendor policies, fallbacks and filters must not survive.
   config.dns = shared.dns;
   config["proxy-groups"] = (config["proxy-groups"] || [])
-    .filter((group) => group.name !== "DNS-Proxy")
-    .concat(shared["proxy-groups"]);
-  config.tun = {...(config.tun || {}), ...shared.tun};
+    .filter((group) => group.name !== "DNS-Proxy");
+  // Clash Verge owns these fields in its GUI and discards script overrides.
+  if (!appOwnsTun) config.tun = {...(config.tun || {}), ...shared.tun};
   return config;
 }
 // END SHARED DNS POLICY

@@ -1,4 +1,4 @@
-# Generated from policy/dns.yaml. Merge DNS by replacement and append DNS-Proxy.
+# Generated from policy/dns.yaml. Replace DNS; use the existing Final group.
 ipv6: true
 dns:
   enable: true
@@ -18,18 +18,18 @@ dns:
   - localhost.ptlogin2.qq.com
   - '*.msftncsi.com'
   - www.msftconnecttest.com
-  - +.quickconnect.cn
-  - +.quickconnect.to
   default-nameserver:
   - https://223.5.5.5/dns-query
   - https://223.6.6.6/dns-query
   proxy-server-nameserver:
-  - https://223.5.5.5/dns-query#DIRECT
-  - https://223.6.6.6/dns-query#DIRECT
-  nameserver: &id001
-  - https://1.1.1.1/dns-query#DNS-Proxy
-  - https://8.8.8.8/dns-query#DNS-Proxy
-  direct-nameserver: *id001
+  - https://dns.alidns.com/dns-query#DIRECT
+  - https://doh.pub/dns-query#DIRECT
+  nameserver:
+  - https://1.1.1.1/dns-query#Final
+  - https://8.8.8.8/dns-query#Final
+  direct-nameserver:
+  - https://dns.alidns.com/dns-query#DIRECT
+  - https://doh.pub/dns-query#DIRECT
   direct-nameserver-follow-policy: true
   nameserver-policy:
     +.lan: system
@@ -41,13 +41,6 @@ dns:
   prefer-h3: false
   use-hosts: true
   use-system-hosts: true
-proxy-groups:
-- name: DNS-Proxy
-  type: select
-  include-all: true
-  exclude-type: Direct|Reject|Compatible|Pass|Dns
-  exclude-filter: '(?i)剩余流量|套餐到期|距离下次|最新网址|remain:|used:|reset in:'
-  empty-fallback: REJECT
 tun:
   enable: true
   auto-route: true

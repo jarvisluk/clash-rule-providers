@@ -7,14 +7,15 @@ from urllib.parse import urlsplit
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
-GROUP = "DNS-Proxy"
 
 
 def load_policy(path=None):
     policy = yaml.safe_load((path or ROOT / "policy/dns.yaml").read_text())
     if policy.get("version") != 1 or not isinstance(policy.get("ipv6"), bool):
         raise ValueError("unsupported DNS policy version or invalid ipv6")
-    for key in ("public_resolvers", "bootstrap_resolvers"):
+    if policy.get("proxy_group") != "Final":
+        raise ValueError("the simple policy uses the existing Final group")
+    for key in ("public_resolvers", "direct_resolvers", "bootstrap_resolvers"):
         values = policy.get(key)
         if not isinstance(values, list) or not values:
             raise ValueError(f"{key} must be a nonempty resolver list")
@@ -22,8 +23,11 @@ def load_policy(path=None):
             url = urlsplit(value)
             if url.scheme != "https" or url.path != "/dns-query" or url.fragment or url.query:
                 raise ValueError(f"only plain, certificate-verified DoH endpoints allowed: {value}")
-            # IP endpoints avoid bootstrap DNS queries about the resolver itself.
-            ipaddress.ip_address(url.hostname)
+            if not url.hostname:
+                raise ValueError(f"missing DoH hostname: {value}")
+            # Direct DoH hostnames are bootstrapped through encrypted IP endpoints.
+            if key != "direct_resolvers":
+                ipaddress.ip_address(url.hostname)
     for suffix, resolver in policy.get("local_resolvers", {}).items():
         if suffix not in {"lan", "local", "home.arpa", "ts.net"}:
             raise ValueError(f"public namespace cannot bypass proxy DNS: {suffix}")
@@ -35,8 +39,8 @@ def load_policy(path=None):
 
 
 def mihomo_config(policy):
-    public = [f"{url}#{GROUP}" for url in policy["public_resolvers"]]
-    bootstrap = [f"{url}#DIRECT" for url in policy["bootstrap_resolvers"]]
+    public = [f"{url}#{policy['proxy_group']}" for url in policy["public_resolvers"]]
+    direct = [f"{url}#DIRECT" for url in policy["direct_resolvers"]]
     dns = {
         "enable": True,
         "ipv6": policy["ipv6"],
@@ -46,9 +50,9 @@ def mihomo_config(policy):
         "fake-ip-filter-mode": "blacklist",
         "fake-ip-filter": policy["fake_ip_filter"],
         "default-nameserver": policy["bootstrap_resolvers"],
-        "proxy-server-nameserver": bootstrap,
+        "proxy-server-nameserver": direct.copy(),
         "nameserver": public,
-        "direct-nameserver": public,
+        "direct-nameserver": direct,
         "direct-nameserver-follow-policy": True,
         "nameserver-policy": {
             f"+.{suffix}": resolver if resolver == "system" else f"{resolver}#DIRECT"
@@ -60,19 +64,9 @@ def mihomo_config(policy):
         "use-hosts": True,
         "use-system-hosts": True,
     }
-    group = {
-        "name": GROUP,
-        "type": "select",
-        "include-all": True,
-        "exclude-type": "Direct|Reject|Compatible|Pass|Dns",
-        "exclude-filter": "(?i)剩余流量|套餐到期|距离下次|最新网址|remain:|used:|reset in:",
-        # Mihomo otherwise uses COMPATIBLE (which can become DIRECT) for empty groups.
-        "empty-fallback": "REJECT",
-    }
     return {
         "ipv6": policy["ipv6"],
         "dns": dns,
-        "proxy-groups": [group],
         "tun": {
             "enable": True,
             "auto-route": True,
@@ -85,10 +79,11 @@ def mihomo_config(policy):
 
 def shadowrocket_general(policy):
     public = ",".join(f"{url}#proxy" for url in policy["public_resolvers"])
+    direct = ",".join(policy["direct_resolvers"])
     return [
-        "# Generated from policy/dns.yaml; public queries require a working proxy.",
+        "# Generated from policy/dns.yaml; default DNS uses the selected proxy, DIRECT uses domestic DoH.",
         f"dns-server = {public}",
-        f"direct-dns-server = {public}",
+        f"direct-dns-server = {direct}",
         f"fallback-dns-server = {public}",
         "proxy-dns-server = " + ",".join(policy["bootstrap_resolvers"]),
         "dns-direct-system = false",

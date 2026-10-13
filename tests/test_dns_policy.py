@@ -14,24 +14,22 @@ from install_local_dns import attach_policy, merge_config
 
 
 class DnsPolicyTests(unittest.TestCase):
-    def test_public_and_direct_lookups_require_proxy(self):
+    def test_default_uses_final_and_direct_uses_domestic_doh(self):
         config = mihomo_config(load_policy())
         dns = config["dns"]
-        for key in ("nameserver", "direct-nameserver"):
-            self.assertTrue(dns[key])
-            self.assertTrue(all(url.endswith("#DNS-Proxy") for url in dns[key]))
+        self.assertTrue(all(url.endswith("#Final") for url in dns["nameserver"]))
+        self.assertEqual(dns["direct-nameserver"],
+                         [url + "#DIRECT" for url in load_policy()["direct_resolvers"]])
         self.assertEqual(dns["fallback"], [])
         self.assertTrue(dns["direct-nameserver-follow-policy"])
-        group = config["proxy-groups"][0]
-        self.assertEqual(group["empty-fallback"], "REJECT")
-        self.assertIn("Direct", group["exclude-type"])
-        self.assertNotIn("proxies", group)  # Never references Final, which can be DIRECT.
+        self.assertNotIn("proxy-groups", config)
+        self.assertFalse(any("quickconnect" in item for item in dns["fake-ip-filter"]))
 
     def test_bootstrap_does_not_depend_on_the_tunnel(self):
         policy = load_policy()
         dns = mihomo_config(policy)["dns"]
         self.assertEqual(dns["proxy-server-nameserver"],
-                         [url + "#DIRECT" for url in policy["bootstrap_resolvers"]])
+                         [url + "#DIRECT" for url in policy["direct_resolvers"]])
         general = "\n".join(shadowrocket_general(policy))
         self.assertIn("proxy-dns-server = " + ",".join(policy["bootstrap_resolvers"]), general)
         self.assertIn("dns-direct-system = false", general)
@@ -43,8 +41,9 @@ class DnsPolicyTests(unittest.TestCase):
         general = dict(line.split(" = ", 1) for line in shadowrocket_general(policy)
                        if " = " in line)
         expected = ",".join(url + "#proxy" for url in policy["public_resolvers"])
-        for key in ("dns-server", "direct-dns-server", "fallback-dns-server"):
+        for key in ("dns-server", "fallback-dns-server"):
             self.assertEqual(general[key], expected)
+        self.assertEqual(general["direct-dns-server"], ",".join(policy["direct_resolvers"]))
         self.assertIn("DST-PORT,53,REJECT", build())
 
     def test_public_names_cannot_use_local_exception(self):
@@ -79,13 +78,18 @@ class DnsPolicyTests(unittest.TestCase):
         script = 'function main(config) { config.rules = ["MATCH,DIRECT"]; return config; }\n'
         first = attach_policy(script, override_script(shared))
         self.assertEqual(first, attach_policy(first, override_script(shared)))
+        verge = attach_policy(script, override_script(shared), app_owns_tun=True)
+        self.assertIn("return applyPersonalDnsPolicy(config, true);", verge)
+        self.assertEqual(verge, attach_policy(verge, override_script(shared), app_owns_tun=True))
         old = {"rules": ["MATCH,DIRECT"], "dns": {"fallback": ["system"]},
-               "proxy-groups": [{"name": "Final", "type": "select", "proxies": ["DIRECT"]}],
+               "proxy-groups": [{"name": "Final", "type": "select", "proxies": ["DIRECT"]},
+                                {"name": "DNS-Proxy", "type": "select", "proxies": ["DIRECT"]}],
                "tun": {"route-exclude-address": ["100.64.0.0/10"]}}
         merged = merge_config(old, shared)
         self.assertEqual(merged["rules"], ["MATCH,DIRECT"])
         self.assertEqual(merged["tun"]["route-exclude-address"], ["100.64.0.0/10"])
         self.assertEqual(merged["dns"]["fallback"], [])
+        self.assertEqual([g["name"] for g in merged["proxy-groups"]], ["Final"])
         self.assertEqual(merge_config(merged, shared), merged)
 
 

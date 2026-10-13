@@ -1,9 +1,13 @@
 # The only editable source of DNS policy for all three clients.
 version: 1
 ipv6: true
+proxy_group: Final
 public_resolvers:
   - https://1.1.1.1/dns-query
   - https://8.8.8.8/dns-query
+direct_resolvers:
+  - https://dns.alidns.com/dns-query
+  - https://doh.pub/dns-query
 # Only DNS server names and proxy node names may use these before a tunnel exists.
 bootstrap_resolvers:
   - https://223.5.5.5/dns-query
@@ -25,8 +29,6 @@ fake_ip_filter:
   - localhost.ptlogin2.qq.com
   - '*.msftncsi.com'
   - www.msftconnecttest.com
-  - '+.quickconnect.cn'
-  - '+.quickconnect.to'
 shadowrocket_hijack:
   - 8.8.8.8
   - 8.8.4.4

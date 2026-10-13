@@ -23,20 +23,22 @@ START = "// BEGIN SHARED DNS POLICY"
 END = "// END SHARED DNS POLICY"
 
 
-def attach_policy(script, helper):
+def attach_policy(script, helper, app_owns_tun=False):
     script = re.sub(r"// BEGIN SHARED DNS POLICY.*?// END SHARED DNS POLICY\n?",
                     "", script, flags=re.S)
     script = script.replace("return applyPersonalDnsPolicy(config);", "return config;")
+    script = script.replace("return applyPersonalDnsPolicy(config, true);", "return config;")
     if "return config;" not in script:
         raise ValueError("routing script has no known return point; refusing to overwrite")
-    return script.replace("return config;", "return applyPersonalDnsPolicy(config);").rstrip() + "\n\n" + helper
+    call = "return applyPersonalDnsPolicy(config, true);" if app_owns_tun else "return applyPersonalDnsPolicy(config);"
+    return script.replace("return config;", call).rstrip() + "\n\n" + helper
 
 
 def merge_config(config, shared):
     config["dns"] = shared["dns"]
     config["ipv6"] = shared["ipv6"]
     config["proxy-groups"] = [g for g in config.get("proxy-groups", [])
-                              if g["name"] != "DNS-Proxy"] + shared["proxy-groups"]
+                              if g["name"] != "DNS-Proxy"]
     config["tun"] = {**config.get("tun", {}), **shared["tun"]}
     return config
 
@@ -49,7 +51,7 @@ def install(verge, flclash=None):
         for name in ("Script.js", "sviiDJPlf3BL.js"):
             path = verge / "profiles" / name
             if path.exists():
-                writes[path] = attach_policy(path.read_text(), helper)
+                writes[path] = attach_policy(path.read_text(), helper, app_owns_tun=True)
         path = verge / "dns_config.yaml"
         if path.exists():
             data = yaml.safe_load(path.read_text())

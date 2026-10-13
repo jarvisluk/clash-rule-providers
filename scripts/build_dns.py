@@ -6,21 +6,21 @@ from pathlib import Path
 
 import yaml
 
-from dns_policy import ROOT, GROUP, load_policy, mihomo_config
+from dns_policy import ROOT, load_policy, mihomo_config
 
 
 def override_script(config):
     # No top-level const declarations: this can also be appended to routing scripts.
     return '''// BEGIN SHARED DNS POLICY (generated; edit policy/dns.yaml)
-function applyPersonalDnsPolicy(config) {
+function applyPersonalDnsPolicy(config, appOwnsTun = false) {
   const shared = ''' + json.dumps(config, ensure_ascii=False, indent=2) + ''';
   config.ipv6 = shared.ipv6;
   // Replace the DNS object: vendor policies, fallbacks and filters must not survive.
   config.dns = shared.dns;
   config["proxy-groups"] = (config["proxy-groups"] || [])
-    .filter((group) => group.name !== "''' + GROUP + '''")
-    .concat(shared["proxy-groups"]);
-  config.tun = {...(config.tun || {}), ...shared.tun};
+    .filter((group) => group.name !== "DNS-Proxy");
+  // Clash Verge owns these fields in its GUI and discards script overrides.
+  if (!appOwnsTun) config.tun = {...(config.tun || {}), ...shared.tun};
   return config;
 }
 // END SHARED DNS POLICY
@@ -29,7 +29,7 @@ function applyPersonalDnsPolicy(config) {
 
 def outputs():
     config = mihomo_config(load_policy())
-    yaml_text = "# Generated from policy/dns.yaml. Merge DNS by replacement and append DNS-Proxy.\n"
+    yaml_text = "# Generated from policy/dns.yaml. Replace DNS; use the existing Final group.\n"
     yaml_text += yaml.safe_dump(config, allow_unicode=True, sort_keys=False)
     script = override_script(config)
     entry = "\nfunction main(config) {\n  return applyPersonalDnsPolicy(config);\n}\n"

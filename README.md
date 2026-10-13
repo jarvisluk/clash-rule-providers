@@ -81,106 +81,94 @@ For local generation, install `PyYAML==6.0.3` and run
 
 ## Shared DNS policy: Clash Verge, Shadowrocket and FlClash
 
-Edit **[policy/dns.yaml](policy/dns.yaml)** to change DNS for all clients. The
-existing workflow generates these artifacts together:
+Edit **[policy/dns.yaml](policy/dns.yaml)** to change DNS for all clients.
+The workflow generates the following files and validates them together:
 
 | Client | Generated configuration |
 | --- | --- |
-| Shadowrocket | [shadowrocket/ruleproviders.conf](shadowrocket/ruleproviders.conf), rules plus DNS |
+| Shadowrocket | [shadowrocket/ruleproviders.conf](shadowrocket/ruleproviders.conf), DNS plus personal rules |
 | Clash Verge / Mihomo | [mihomo/dns-override.js](mihomo/dns-override.js), DNS-only script |
-| FlClash | [flclash/dns-override.js](flclash/dns-override.js), same DNS-only script |
-| Other Mihomo clients | [mihomo/dns.yaml](mihomo/dns.yaml), configuration fragment |
+| FlClash | [flclash/dns-override.js](flclash/dns-override.js), identical DNS-only script |
+| Other Mihomo clients | [mihomo/dns.yaml](mihomo/dns.yaml), DNS fragment |
 
-All public destination lookups, including DIRECT websites, use Cloudflare and
-Google **DoH through a proxy**. No plaintext or system DNS is configured as a
-public fallback. If the DNS proxy is unavailable, public resolution fails
-instead of switching to direct DNS. Website routing rules still decide whether
-the subsequent website connection is direct or proxied.
+The simple policy is:
 
-Mihomo clients use a separate `DNS-Proxy` selector containing subscription
-nodes, excluding Direct/Compatible adapters. Its empty fallback is `REJECT`;
-it never references `Final` or another service group that can select DIRECT.
-Choose a working node in `DNS-Proxy` after installing. Shadowrocket uses its
-selected default node (`#proxy`) and `always-ip-address` to resolve proxy
-destinations through the configured DoH instead of leaving resolution to the
-proxy server. This matches the resolver policy; node choices are local and
-are not synchronized between clients.
+- Default lookup: Cloudflare / Google DoH through the existing **Final** group.
+- DIRECT destination lookup: AliDNS / DNSPod DoH directly.
+- Proxy node lookup: domestic DoH directly, avoiding a tunnel bootstrap loop.
+- No public system/plaintext fallback and no QuickConnect Fake-IP exclusions.
+- No separate DNS proxy group. Existing website rules and node groups are preserved.
 
-Only proxy node names use AliDNS DoH directly before a tunnel is available.
-DoH resolver URLs use IP addresses with normal TLS verification, avoiding
-system bootstrap resolution. This is an explicit exception: AliDNS can see
-node names and the device's source IP. It does not resolve public website names.
-Never add public namespaces to `local_resolvers`. Only `lan`, `local`,
-`home.arpa` and Tailscale `ts.net` may use private/system resolvers. Tailscale
-MagicDNS requires Tailscale to be connected; `.local` discovery can also use
-mDNS. These private namespace queries are intentionally local.
+Choose a working **proxy** in Final on Clash/FlClash. Selecting DIRECT in Final
+also sends default DNS directly; there is no independent DNS selector guarding
+that choice. Direct website queries reaching domestic DNS are intentional under
+this policy. Local LAN / mDNS / Tailscale namespaces retain their private DNS
+exceptions. IPv6 remains enabled and should be captured alongside IPv4.
 
-Clash/FlClash overrides replace the entire subscription DNS object to remove
-vendor fallbacks and domain policies, append the dedicated DNS group and enable
-TUN with TCP/UDP port 53 interception and strict routing. They retain existing
-TUN route exclusions for private networks. Shadowrocket explicitly configures
-encrypted backup DNS, disables system fallback, intercepts common public DNS
-addresses and rejects remaining plaintext port 53 traffic after LAN rules.
+Shadowrocket uses its selected default node (`#proxy`) as the equivalent of
+Clash's Final for default DNS, and domestic DoH for `direct-dns-server`.
+`always-ip-address` requests client-side resolution so proxy destinations use
+the specified DNS. Encrypted fallback uses the selected proxy; system fallback
+is disabled. Node names have a separate encrypted bootstrap resolver. Resolver
+policy is shared; runtime node selections are independent on each device.
 
 ### Install and update
 
-Clash Verge: apply the generated DNS script **after** service routing/group
-scripts. If using the YAML fragment, replace the entire `dns` object and append
-`DNS-Proxy` to existing groups; importing the fragment as a complete subscription
-would omit your nodes and website rules. Disable independent GUI DNS overrides
-or give them the identical generated settings.
+Shadowrocket: update and select the existing remote configuration:
 
-FlClash: use the generated script as a profile override. If your profile already
-uses a routing script, append the `applyPersonalDnsPolicy` helper to that script
-and call it on the final config; don't replace your routing script with the
-DNS-only script. Disable FlClash's independent **Override DNS** setting so its
-GUI settings cannot overwrite the script. Keep VPN/TUN capture enabled in the
-client; operating-system VPN permissions cannot be granted by a config file.
-FlClash applies its GUI TUN/IPv6 settings after profile scripts: enable DNS
-Hijacking and IPv6 in VPN settings, disable Allow Bypass, and enable TUN and
-Auto Route on desktop. The macOS installer updates these preferences too.
+```text
+https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/shadowrocket/ruleproviders.conf
+```
 
-Remote script download URLs:
+Clash Verge / FlClash: apply the DNS helper after any service routing script.
+The helper replaces vendor DNS settings and removes the old DNS proxy group.
+Use a profile that already defines Final. The YAML fragment is not a complete
+subscription: replace the DNS object without replacing node/service groups.
+If an existing profile uses a routing script, append `applyPersonalDnsPolicy`
+to that script and call it on the final config rather than discarding routing.
 
 ```text
 https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/mihomo/dns-override.js
 https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/flclash/dns-override.js
 ```
 
-The workflow publishes changes; it cannot force a client to fetch them.
-Shadowrocket refreshes its existing remote configuration. Clash/FlClash local
-scripts must be refreshed/reimported, or updated using the installer below.
-It preserves existing routing scripts, replaces DNS, and backs up each changed
-file in a `.dns-policy-backups` directory. Reload the client afterwards.
+The workflow publishes files; clients must fetch/reimport them. For existing
+local macOS routing scripts, pull the repository and run the installer:
 
 ```bash
 git pull --ff-only
-python3 scripts/build_dns.py
-python3 scripts/build_shadowrocket.py
 python3 scripts/install_local_dns.py \
   --verge-dir "$HOME/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev" \
   --flclash-dir "$HOME/Library/Application Support/com.follow.clash"
 ```
 
-### Verification and limits
+Changed files are backed up in `.dns-policy-backups`. Reload Clash Verge and
+restart FlClash afterwards. Keep FlClash's independent Override DNS disabled;
+the macOS installer also synchronizes its persistent DNS/TUN/IPv6 settings.
+Clash Verge owns TUN fields in its GUI: enable Strict Route and DNS Hijacking
+(`any:53,tcp://any:53`) there. The installed Verge routing helper leaves TUN
+fields to the application to avoid discarded-setting notifications.
+
+TUN/VPN capture must remain enabled. OS permissions cannot be granted by a
+configuration file. App-owned encrypted DNS and OS VPN exclusions require
+verification on each device; a browser test cannot prove every app is covered.
+
+### Verify and regenerate locally
+
+Install PyYAML==6.0.3, then run:
 
 ```bash
+python3 scripts/build_dns.py
+python3 scripts/build_shadowrocket.py
 python3 scripts/validate.py
 python3 -m unittest discover -s tests
 node tests/dns_override.test.js
 ```
 
-Reconnect and run an extended test at <https://www.dnsleaktest.com/> on each
-device, on Wi-Fi and cellular networks where applicable. Check that public test
-queries reach the configured resolvers, then temporarily choose an unavailable
-DNS proxy: a new uncached public lookup should fail, with no ISP fallback.
-Use a packet capture on the physical interface for stronger verification.
-
-This policy governs DNS handled by the client. Application-owned DoH/DoT,
-OS VPN exclusions, disabled VPN/TUN capture, and overlapping VPNs must be
-checked on each device. A successful browser test does not prove every app is
-covered. IPv6 remains enabled and must be captured alongside IPv4.
+After refreshing each client, run an extended test at
+<https://www.dnsleaktest.com/>. Test Wi-Fi/cellular where applicable and check
+physical-interface packets for unexpected plaintext DNS. QuickConnect can use
+Fake-IP; public entry-point success does not verify NAS login or relay sessions.
 
 References: [Mihomo DNS](https://wiki.metacubex.one/config/dns/),
-[Mihomo proxy groups](https://wiki.metacubex.one/config/proxy-groups/),
 [Shadowrocket settings](https://github.com/LOWERTOP/Shadowrocket/wiki).
