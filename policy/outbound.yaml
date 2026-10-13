@@ -1,28 +1,5 @@
-# Runtime protection. Protection after core exit requires an OS firewall.
+# Restore original choices in every group except Claude.
 version: 1
 enabled: true
-proxy_group: Final
-direct_groups:
-  - 🇨🇳 ChinaWebsites
-  - 🎬 BiliBili
-direct_providers:
-  - chinamax
-  - bilibili
-  - gamedownloadcn
-  - steamcn
-local_domains:
-  - localhost
-  - lan
-  - local
-  - home.arpa
-  - kooka-haddock.ts.net
-local_networks:
-  - 10.0.0.0/8
-  - 100.64.0.0/10
-  - 127.0.0.0/8
-  - 169.254.0.0/16
-  - 172.16.0.0/12
-  - 192.168.0.0/16
-  - ::1/128
-  - fc00::/7
-  - fe80::/10
+protected_groups:
+  - 🤖 Claude

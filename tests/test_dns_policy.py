@@ -11,19 +11,9 @@ from dns_policy import load_policy, mihomo_config, shadowrocket_general
 from build_dns import outputs
 from build_shadowrocket import build
 from install_local_dns import attach_policy, merge_config
-from outbound_policy import local_rule
 
 
 class DnsPolicyTests(unittest.TestCase):
-    def test_private_names_are_not_a_public_direct_allowlist(self):
-        self.assertTrue(local_rule("IP-CIDR,192.168.1.0/24,no-resolve"))
-        self.assertTrue(local_rule("DOMAIN-SUFFIX,kooka-haddock.ts.net"))
-        self.assertFalse(local_rule("DOMAIN-SUFFIX,interactivebrokers.com"))
-        self.assertFalse(local_rule("IP-CIDR,64.190.196.0/23,no-resolve"))
-        self.assertFalse(local_rule("IP-CIDR,198.18.0.0/16,no-resolve"))
-        generated = build()
-        self.assertIn("DOMAIN-SUFFIX,interactivebrokers.com,PROXY", generated)
-        self.assertIn("IP-CIDR,192.168.0.0/16,DIRECT,no-resolve", generated)
     def test_default_uses_final_and_direct_uses_domestic_doh(self):
         config = mihomo_config(load_policy())
         dns = config["dns"]

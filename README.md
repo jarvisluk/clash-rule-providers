@@ -87,8 +87,8 @@ The workflow generates the following files and validates them together:
 | Client | Generated configuration |
 | --- | --- |
 | Shadowrocket | [shadowrocket/ruleproviders.conf](shadowrocket/ruleproviders.conf), DNS plus personal rules |
-| Clash Verge / Mihomo | [mihomo/dns-override.js](mihomo/dns-override.js), DNS and strict routing script |
-| FlClash | [flclash/dns-override.js](flclash/dns-override.js), identical DNS and strict routing script |
+| Clash Verge / Mihomo | [mihomo/dns-override.js](mihomo/dns-override.js), DNS-only script |
+| FlClash | [flclash/dns-override.js](flclash/dns-override.js), identical DNS-only script |
 | Other Mihomo clients | [mihomo/dns.yaml](mihomo/dns.yaml), DNS fragment |
 
 The simple policy is:
@@ -97,31 +97,13 @@ The simple policy is:
 - DIRECT destination lookup: AliDNS / DNSPod DoH directly.
 - Proxy node lookup: domestic DoH directly, avoiding a tunnel bootstrap loop.
 - No public system/plaintext fallback and no QuickConnect Fake-IP exclusions.
-- No separate DNS proxy group. Strict outbound policy removes direct choices from public-service groups.
+- No separate DNS proxy group. Existing website rules and node groups are preserved.
 
-Choose a working **proxy** in Final on Clash/FlClash. The strict policy in
-[policy/outbound.yaml](policy/outbound.yaml) removes DIRECT, pass/compatible
-outbounds, direct aliases and references to domestic DIRECT groups from public
-proxy groups. An empty group rejects connections. Proxy-provider nodes with
-direct/pass/compatible types are excluded. Explicit domestic groups retain DIRECT.
-
-When a node does not support UDP, Mihomo skips its matching rule. The generated
-policy follows each public rule with a matching UDP rejection, and follows the
-final proxy rule with MATCH,REJECT to prevent implicit direct routing.
-
-Local private routes precede public-service rules. A provider named LAN is not
-trusted as private: its public endpoints use Final, while explicitly listed LAN
-networks/names stay direct. Domestic game-download/Steam rules use ChinaWebsites.
-IPv6 remains enabled and is captured alongside IPv4. Default public DNS still
-uses Final; direct website DNS and node bootstrap use domestic DoH.
-
-This enforces routing while the core is running. **A persistent OS outbound
-firewall is required to block traffic after TUN/core shutdown.** A rule-provider,
-DNS override or strict-route setting cannot enforce that by itself. On macOS,
-only the trusted proxy core should have ordinary public egress; applications
-must use local proxy/TUN paths. Firewall/TUN interoperability must be verified
-before claiming shutdown protection. Physical LAN access and bootstrap are
-explicit exceptions, not proof that every kind of OS traffic is filtered.
+Choose a working **proxy** in Final on Clash/FlClash. Selecting DIRECT in Final
+also sends default DNS directly; there is no independent DNS selector guarding
+that choice. Direct website queries reaching domestic DNS are intentional under
+this policy. Local LAN / mDNS / Tailscale namespaces retain their private DNS
+exceptions. IPv6 remains enabled and should be captured alongside IPv4.
 
 Shadowrocket uses its selected default node (`#proxy`) as the equivalent of
 Clash's Final for default DNS, and domestic DoH for `direct-dns-server`.
@@ -139,8 +121,7 @@ https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/shadowrock
 ```
 
 Clash Verge / FlClash: apply the DNS helper after any service routing script.
-The helper replaces vendor DNS settings, removes the old DNS proxy group, and
-applies the strict outbound policy.
+The helper replaces vendor DNS settings and removes the old DNS proxy group.
 Use a profile that already defines Final. The YAML fragment is not a complete
 subscription: replace the DNS object without replacing node/service groups.
 If an existing profile uses a routing script, append `applyPersonalDnsPolicy`
@@ -191,3 +172,19 @@ Fake-IP; public entry-point success does not verify NAS login or relay sessions.
 
 References: [Mihomo DNS](https://wiki.metacubex.one/config/dns/),
 [Shadowrocket settings](https://github.com/LOWERTOP/Shadowrocket/wiki).
+
+## Claude-only direct restriction
+
+[policy/outbound.yaml](policy/outbound.yaml) protects only **🤖 Claude**.
+All other groups retain their original choices, including DIRECT in **My Servers**,
+**Final** and the other service groups. Existing subscription and region groups
+retain their original construction; DIRECT is not added to automatic test groups.
+
+The generated helper removes direct nodes/aliases and groups that can reach DIRECT
+from Claude's choices, without modifying those shared groups. A matching UDP
+rejection follows each Claude rule so an unsupported UDP node cannot fall through
+to a later direct rule. Website rules for other services and LAN are preserved.
+
+Default DNS still uses Final. Choosing DIRECT in Final therefore also makes the
+default DoH connection direct; this is an intentional available selection under
+the restored policy. No system firewall has been installed or enabled here.

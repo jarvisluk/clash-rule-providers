@@ -6,7 +6,6 @@ from pathlib import Path
 import yaml
 
 from dns_policy import load_policy, shadowrocket_general, shadowrocket_hosts
-from outbound_policy import load_outbound_policy, local_rule
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,6 +13,12 @@ PROVIDERS = ROOT / "rules" / "classical"
 OUTPUT = ROOT / "shadowrocket" / "ruleproviders.conf"
 UPDATE_URL = "https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/shadowrocket/ruleproviders.conf"
 
+# Match the initial selections in the user's Clash service groups.
+DIRECT = {
+    "lan", "chinamax", "bilibili", "apple", "onedrive", "paypal",
+    "microsoft", "learning", "gamedownload", "gamedownloadcn",
+    "hoyoverse", "steam", "steamcn", "emby", "spotify", "hijacking",
+}
 ORDER = [
     "lan", "openai", "claude", "gemini", "cursor", "github", "telegram",
     "youtube", "cryptocurrency", "google", "tiktok", "netflix", "disney",
@@ -27,7 +32,6 @@ SUPPORTED = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6"}
 
 def build() -> str:
     policy = load_policy()
-    outbound = load_outbound_policy()
     actual = {path.stem for path in PROVIDERS.glob("*.yaml")}
     if actual != set(ORDER):
         raise ValueError(f"Provider mismatch: missing={actual - set(ORDER)}, extra={set(ORDER) - actual}")
@@ -60,10 +64,7 @@ def build() -> str:
             )
             if fields[0] not in SUPPORTED or not valid_options or not fields[1]:
                 raise ValueError(f"Unsupported rule in {name}: {raw}")
-            target = "DIRECT" if name in outbound["direct_providers"] or local_rule(raw, outbound) else "PROXY"
-            if name == "hijacking":
-                target = "REJECT"
-            fields.insert(2, target)
+            fields.insert(2, "DIRECT" if name in DIRECT else "PROXY")
             lines.append(",".join(fields))
     lines.extend(["GEOIP,CN,DIRECT", "FINAL,PROXY", "", *shadowrocket_hosts(policy), ""])
     return "\n".join(lines)
