@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 
 from dns_policy import ROOT, load_policy, mihomo_config
+from outbound_policy import outbound_script
 
 
 def override_script(config):
@@ -21,10 +22,9 @@ function applyPersonalDnsPolicy(config, appOwnsTun = false) {
     .filter((group) => group.name !== "DNS-Proxy");
   // Clash Verge owns these fields in its GUI and discards script overrides.
   if (!appOwnsTun) config.tun = {...(config.tun || {}), ...shared.tun};
-  return config;
+  return applyPersonalOutboundPolicy(config);
 }
-// END SHARED DNS POLICY
-'''
+''' + outbound_script() + '// END SHARED DNS POLICY\n'
 
 
 def outputs():
