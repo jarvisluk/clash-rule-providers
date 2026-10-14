@@ -37,7 +37,7 @@ classical rule omits the final policy target.
 
 Import [shadowrocket/ruleproviders.conf](shadowrocket/ruleproviders.conf) as a
 separate Shadowrocket configuration. It contains the current rules from all
-31 classical providers with their Clash default policies, and does not contain
+32 classical providers with their Clash default policies, and does not contain
 proxy nodes. Keep the existing node subscription in Shadowrocket.
 
 ### Automatic sync

@@ -15,12 +15,12 @@ UPDATE_URL = "https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/m
 
 # Match the initial selections in the user's Clash service groups.
 DIRECT = {
-    "lan", "chinamax", "bilibili", "apple", "onedrive", "paypal",
+    "servers", "lan", "chinamax", "bilibili", "apple", "onedrive", "paypal",
     "microsoft", "learning", "gamedownload", "gamedownloadcn",
     "hoyoverse", "steam", "steamcn", "emby", "spotify", "hijacking",
 }
 ORDER = [
-    "lan", "openai", "claude", "gemini", "cursor", "github", "telegram",
+    "servers", "lan", "openai", "claude", "gemini", "cursor", "github", "telegram",
     "youtube", "cryptocurrency", "google", "tiktok", "netflix", "disney",
     "globalmedia", "twitter", "spotify", "onedrive", "paypal", "microsoft",
     "apple", "linkedin", "learning", "bilibili", "gamedownload",
