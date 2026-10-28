@@ -1,5 +1,6 @@
 payload:
   - DOMAIN,junrong.synology.me
+  - DOMAIN,magpie.jellymilk.qzz.io
   - IP-CIDR,129.146.21.0/32,no-resolve
   - IP-CIDR,158.101.0.136/32,no-resolve
   - IP-CIDR,144.34.152.176/32,no-resolve
