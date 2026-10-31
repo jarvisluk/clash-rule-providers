@@ -44,6 +44,11 @@ class DnsPolicyTests(unittest.TestCase):
         for key in ("dns-server", "fallback-dns-server"):
             self.assertEqual(general[key], expected)
         self.assertEqual(general["direct-dns-server"], ",".join(policy["direct_resolvers"]))
+        real = general["always-real-ip"].split(",")
+        self.assertIn("ts.net", real)
+        self.assertIn("*.ts.net", real)
+        self.assertIn("*.lan", real)
+        self.assertFalse(any(name.startswith("+.") for name in real))
         self.assertIn("DST-PORT,53,REJECT", build())
 
     def test_public_names_cannot_use_local_exception(self):

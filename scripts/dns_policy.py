@@ -104,6 +104,11 @@ def shadowrocket_general(policy):
         f"ipv6 = {str(policy['ipv6']).lower()}",
         "prefer-ipv6 = false",
         "hijack-dns = " + ",".join(f"{ip}:53" for ip in policy["shadowrocket_hijack"]),
+        # Shadowrocket's equivalent of fake-ip-filter; it has no "+." wildcard.
+        "always-real-ip = " + ",".join(
+            name for item in policy["fake_ip_filter"]
+            for name in ((item[2:], "*." + item[2:]) if item.startswith("+.") else (item,))
+        ),
     ]
 
 
