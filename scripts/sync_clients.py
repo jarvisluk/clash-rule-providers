@@ -15,6 +15,7 @@ import argparse
 from datetime import datetime
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -23,7 +24,7 @@ from urllib.parse import urlsplit
 import yaml
 
 from build_dns import override_script
-from build_flclash_override import build as build_flclash
+from build_flclash_override import SERVICE_GROUPS, build as build_flclash
 from dns_policy import load_policy, mihomo_config
 from install_local_dns import attach_policy, install as install_dns
 
@@ -98,6 +99,15 @@ def write_if_changed(path, content, backup=True):
     print(f"updated {path}")
 
 
+def share_service_groups(script, merged):
+    """Return Merge All's script with Script.js's service-group table before its DNS block."""
+    block = re.search(SERVICE_GROUPS, script, re.S)
+    if not block:
+        raise SystemExit("Script.js has no shared service groups block")
+    head, marker, dns = re.sub(SERVICE_GROUPS, "", merged, flags=re.S).partition("// BEGIN SHARED DNS POLICY")
+    return head.rstrip() + "\n\n" + block.group(0).rstrip() + "\n" + ("\n" + marker + dns if marker else "")
+
+
 def run(*command, **kwargs):
     print("$", " ".join(map(str, command)), flush=True)
     subprocess.run(command, cwd=ROOT, check=True, **kwargs)
@@ -121,6 +131,11 @@ def main():
     run(python, "scripts/validate.py")
     run(python, "-m", "unittest", "discover", "-s", "tests")
     run("node", "tests/dns_override.test.js")
+
+    profiles = args.verge_dir / "profiles"
+    write_if_changed(profiles / "sviiDJPlf3BL.js",
+                     share_service_groups((profiles / "Script.js").read_text(),
+                                          (profiles / "sviiDJPlf3BL.js").read_text()))
 
     flclash = args.flclash_dir if args.flclash_dir.exists() else None
     if flclash:

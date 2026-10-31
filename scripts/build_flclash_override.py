@@ -11,6 +11,7 @@ import yaml
 
 POLICY_REPO = Path(__file__).resolve().parent.parent
 VERGE = Path.home() / "Library/Application Support/io.github.clash-verge-rev.clash-verge-rev"
+SERVICE_GROUPS = r"// BEGIN SHARED SERVICE GROUPS.*?// END SHARED SERVICE GROUPS\n?"
 
 
 def read_yaml(path):
@@ -36,9 +37,13 @@ def build(root=VERGE):
     merged = (root / "profiles/sviiDJPlf3BL.js").read_text()
     def strip_dns_policy(script):
         script = re.sub(r"// BEGIN SHARED DNS POLICY.*?// END SHARED DNS POLICY\n?", "", script, flags=re.S)
-        return script.replace("return applyPersonalDnsPolicy(config);", "return config;").replace("return applyPersonalDnsPolicy(config, true);", "return config;")
+        for call in ("applyPersonalDnsPolicy(config)", "applyPersonalDnsPolicy(config, true)",
+                     "mergeAll ? config : applyPersonalDnsPolicy(config, true)"):
+            script = script.replace(f"return {call};", "return config;")
+        return script
     standalone = strip_dns_policy(standalone)
-    merged = strip_dns_policy(merged)
+    # The standalone script already defines the shared service groups.
+    merged = strip_dns_policy(re.sub(SERVICE_GROUPS, "", merged, flags=re.S))
     standalone = re.sub(r"function main\(", "function buildStandaloneConfig(", standalone, count=1)
     merged = re.sub(r"function main\(", "function buildMergedConfig(", merged, count=1)
 
