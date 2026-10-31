@@ -1,39 +1,31 @@
 # Workspace rules
 
-This repository is the single source of rules and DNS for three clients:
-Clash Verge (Mihomo), FlClash and Shadowrocket. Clash Verge is the reference:
-when clients disagree, follow Clash Verge's rules, order and group defaults.
+This repository holds the personal rule providers and every client sync script.
+Clash Verge (Mihomo) is the reference client: its rule order, group selections
+and scripts decide what FlClash, Shadowrocket, Clash Mi and Clash.app receive.
+Only DNS has its own source, `policy/dns.yaml`.
 
-## Every change must sync all three clients
+## Every change must sync all clients
 
-Any change to `rules/classical/*.yaml`, `policy/*.yaml` or `scripts/*.py` must
-update every client in the same commit:
+After changing rules, policies, scripts here, or Clash Verge's routing or group
+selections, run the single sync entry point:
 
-1. Regenerate all outputs:
-   ```bash
-   python3 scripts/build_dns.py
-   python3 scripts/build_shadowrocket.py
-   ```
-2. Validate:
-   ```bash
-   python3 scripts/validate.py
-   python3 -m unittest discover -s tests
-   node tests/dns_override.test.js
-   ```
-3. Check Shadowrocket still matches Clash Verge:
-   - `ORDER` in `scripts/build_shadowrocket.py` follows the `Personal-*` order in
-     Clash Verge `profiles/Script.js`.
-   - `DIRECT` in the same file matches the DIRECT/proxy choice actually selected
-     in each Clash Verge service group (`profiles.yaml` `selected`), not merely
-     the group's first entry. Spotify is DIRECT; PayPal and LinkedIn are PROXY.
-4. Apply locally to Clash Verge and FlClash (backups go to `.dns-policy-backups`):
-   ```bash
-   python3 scripts/install_local_dns.py \
-     --verge-dir "$HOME/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev" \
-     --flclash-dir "$HOME/Library/Application Support/com.follow.clash"
-   ```
+```bash
+python3 scripts/sync_clients.py
+```
 
-Never edit DNS directly in local Clash Verge / FlClash scripts. Edit
-`policy/dns.yaml` and regenerate, otherwise the next install overwrites it.
-Add new site rules to a `rules/classical` provider rather than inline Clash
-rules, so Shadowrocket receives them too.
+It snapshots Verge into `policy/routing.yaml`, regenerates Shadowrocket and DNS
+outputs, runs every validation, installs FlClash and Verge files with backups,
+and exports Clash Mi / Clash.app. Commit the result, including
+`policy/routing.yaml`, in the same commit as the change; Shadowrocket receives
+it only after pushing to `main`.
+
+- Do not hand-edit `policy/routing.yaml` or generated outputs. Change Clash
+  Verge (for example, select DIRECT in a service group) and re-run the sync.
+- Do not edit DNS in local Verge / FlClash scripts. Edit `policy/dns.yaml`.
+- Add new site rules to a `rules/classical` provider rather than inline Clash
+  rules; the sync lists any inline rule Shadowrocket would miss.
+- A new provider must be referenced from Clash Verge before syncing; the
+  Shadowrocket build fails if the two sets differ.
+- Generated Clash Mi / Clash.app exports contain nodes and stay in the Verge
+  directory. Never copy them into this public repository.

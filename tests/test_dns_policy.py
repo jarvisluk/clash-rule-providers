@@ -92,6 +92,32 @@ class DnsPolicyTests(unittest.TestCase):
         self.assertEqual([g["name"] for g in merged["proxy-groups"]], ["Final"])
         self.assertEqual(merge_config(merged, shared), merged)
 
+    def test_verge_selection_decides_shadowrocket_policy(self):
+        from sync_clients import resolve
+        groups = {g["name"]: g for g in [
+            {"name": "💿 Spotify", "type": "select", "proxies": ["DIRECT", "Tier"]},
+            {"name": "Tier", "type": "select", "proxies": ["Auto", "DIRECT"]},
+            {"name": "Auto", "type": "url-test", "proxies": []},
+            {"name": "💀 Hijacking", "type": "select", "proxies": ["DIRECT", "REJECT"]},
+        ]}
+        self.assertEqual(resolve("💿 Spotify", groups, {}), "DIRECT")
+        self.assertEqual(resolve("💿 Spotify", groups, {"💿 Spotify": "Tier"}), "PROXY")
+        self.assertEqual(resolve("💿 Spotify", groups, {"💿 Spotify": "Tier", "Tier": "DIRECT"}), "DIRECT")
+        self.assertEqual(resolve("💀 Hijacking", groups, {"💀 Hijacking": "REJECT"}), "REJECT")
+
+    def test_verge_selection_decides_shadowrocket_policy(self):
+        from sync_clients import resolve
+        groups = {g["name"]: g for g in [
+            {"name": "💿 Spotify", "type": "select", "proxies": ["DIRECT", "Tier"]},
+            {"name": "Tier", "type": "select", "proxies": ["Auto", "DIRECT"]},
+            {"name": "Auto", "type": "url-test", "proxies": []},
+            {"name": "💀 Hijacking", "type": "select", "proxies": ["DIRECT", "REJECT"]},
+        ]}
+        self.assertEqual(resolve("💿 Spotify", groups, {}), "DIRECT")
+        self.assertEqual(resolve("💿 Spotify", groups, {"💿 Spotify": "Tier"}), "PROXY")
+        self.assertEqual(resolve("💿 Spotify", groups, {"💿 Spotify": "Tier", "Tier": "DIRECT"}), "DIRECT")
+        self.assertEqual(resolve("💀 Hijacking", groups, {"💀 Hijacking": "REJECT"}), "REJECT")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -13,29 +13,34 @@ PROVIDERS = ROOT / "rules" / "classical"
 OUTPUT = ROOT / "shadowrocket" / "ruleproviders.conf"
 UPDATE_URL = "https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/shadowrocket/ruleproviders.conf"
 
-# Match the current selections in the user's Clash Verge service groups.
-DIRECT = {
-    "servers", "lan", "chinamax", "bilibili", "apple", "onedrive",
-    "microsoft", "learning", "gamedownload", "gamedownloadcn",
-    "hoyoverse", "steam", "steamcn", "emby", "spotify", "hijacking",
-}
-# Clash Verge Script.js order. Only private-network lan moves up, so LAN DNS
-# precedes the plaintext DNS rejection; it does not overlap other providers.
-ORDER = [
-    "servers", "lan", "spotify", "openai", "claude", "gemini", "cursor", "github",
-    "telegram", "youtube", "onedrive", "paypal", "cryptocurrency", "microsoft",
-    "google", "apple", "linkedin", "learning", "twitter", "bilibili", "tiktok",
-    "netflix", "disney", "gamedownload", "gamedownloadcn", "hoyoverse", "steam",
-    "steamcn", "emby", "globalmedia", "chinamax", "hijacking",
-]
+ROUTING = ROOT / "policy" / "routing.yaml"
 SUPPORTED = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6"}
+
+
+def load_routing():
+    """Clash Verge order and policies, snapshotted by scripts/sync_clients.py."""
+    routing = yaml.safe_load(ROUTING.read_text())
+    providers = routing["providers"]
+    policies = {item["name"]: item["policy"] for item in providers}
+    policies["geoip-cn"] = routing["geoip-cn"]["policy"]
+    policies["final"] = routing["final"]["policy"]
+    if any(policy not in {"DIRECT", "PROXY", "REJECT"} for policy in policies.values()):
+        raise ValueError(f"Unsupported policy in {ROUTING}")
+    # Private-network lan moves first, so LAN DNS precedes the plaintext DNS
+    # rejection; it does not overlap other providers.
+    order = ["lan"] + [item["name"] for item in providers if item["name"] != "lan"]
+    if len(order) != len(providers):
+        raise ValueError(f"Duplicate or missing lan provider in {ROUTING}")
+    return order, policies
 
 
 def build() -> str:
     policy = load_policy()
+    order, policies = load_routing()
     actual = {path.stem for path in PROVIDERS.glob("*.yaml")}
-    if actual != set(ORDER):
-        raise ValueError(f"Provider mismatch: missing={actual - set(ORDER)}, extra={set(ORDER) - actual}")
+    if actual != set(order):
+        raise ValueError(f"Provider mismatch: missing={actual - set(order)}, extra={set(order) - actual}; "
+                         "add the provider to Clash Verge and run scripts/sync_clients.py")
     lines = [
         "# Generated from jarvisluk/clash-rule-providers rules/classical/*.yaml.",
         "# Node subscription is configured separately in Shadowrocket.",
@@ -45,8 +50,8 @@ def build() -> str:
         "",
         "[Rule]",
     ]
-    for name in ORDER:
-        if name == "spotify":
+    for index, name in enumerate(order):
+        if index == 1:
             # Known public DNS endpoints are hijacked above; reject any other
             # plaintext DNS that remains. Private LAN destinations precede this.
             lines.append("DST-PORT,53,REJECT")
@@ -65,9 +70,10 @@ def build() -> str:
             )
             if fields[0] not in SUPPORTED or not valid_options or not fields[1]:
                 raise ValueError(f"Unsupported rule in {name}: {raw}")
-            fields.insert(2, "DIRECT" if name in DIRECT else "PROXY")
+            fields.insert(2, policies[name])
             lines.append(",".join(fields))
-    lines.extend(["GEOIP,CN,DIRECT", "FINAL,PROXY", "", *shadowrocket_hosts(policy), ""])
+    lines.extend([f"GEOIP,CN,{policies['geoip-cn']}", f"FINAL,{policies['final']}",
+                  "", *shadowrocket_hosts(policy), ""])
     return "\n".join(lines)
 
 

@@ -33,11 +33,26 @@ python3 scripts/validate.py
 The validator checks that every rule file has a `payload` list and that each
 classical rule omits the final policy target.
 
+## Sync all clients from Clash Verge
+
+Clash Verge is the reference client. One command syncs FlClash, Shadowrocket,
+Clash Mi and Clash.app from it:
+
+```bash
+python3 scripts/sync_clients.py
+```
+
+It snapshots Verge's personal rule order and the DIRECT/proxy choice currently
+selected in each group into [policy/routing.yaml](policy/routing.yaml),
+regenerates and validates all outputs, installs FlClash's override script and
+the shared DNS with backups, and exports Clash Mi / Clash.app configurations
+into the Verge directory. Commit and push afterwards to publish Shadowrocket.
+
 ## Shadowrocket
 
 Import [shadowrocket/ruleproviders.conf](shadowrocket/ruleproviders.conf) as a
 separate Shadowrocket configuration. It contains the current rules from all
-32 classical providers with their Clash default policies, and does not contain
+32 classical providers in Clash Verge's order and policies, and does not contain
 proxy nodes. Keep the existing node subscription in Shadowrocket.
 
 ### Automatic sync
