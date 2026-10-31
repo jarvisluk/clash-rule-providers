@@ -5,5 +5,9 @@ payload:
   - DOMAIN-SUFFIX,anthropic-static.com
   - DOMAIN-SUFFIX,intercom.io
   - DOMAIN-SUFFIX,intercomcdn.com
+  - DOMAIN-SUFFIX,clau.de
+  - DOMAIN,cdn.usefathom.com
+  - DOMAIN,http-intake.logs.us5.datadoghq.com
+  - DOMAIN,browser-intake-us5-datadoghq.com
   - DOMAIN-KEYWORD,anthropic
   - DOMAIN-KEYWORD,claude

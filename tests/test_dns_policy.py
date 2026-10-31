@@ -111,19 +111,18 @@ class DnsPolicyTests(unittest.TestCase):
         self.assertEqual(resolve("💀 Hijacking", groups, {"💀 Hijacking": "REJECT"}), "REJECT")
 
     def test_clash_rule_sets_map_to_shadowrocket_lists(self):
-        from sync_clients import BLACKMATRIX, shadowrocket_candidates
+        from sync_clients import BLACKMATRIX, shadowrocket_rule_set
         clash, rocket = BLACKMATRIX + "Clash/", BLACKMATRIX + "Shadowrocket/"
-        self.assertEqual(shadowrocket_candidates(clash + "ChinaMax/ChinaMax_Domain.yaml", False),
-                         ("DOMAIN-SET", [rocket + "ChinaMax/ChinaMax_Domain.list"]))
-        self.assertEqual(shadowrocket_candidates(clash + "ChinaMax/ChinaMax_IP.yaml", False),
-                         ("RULE-SET", [rocket + "ChinaMax/ChinaMax.list"]))
-        self.assertEqual(shadowrocket_candidates(clash + "Apple/Apple_Classical.yaml", True),
-                         ("RULE-SET", [rocket + "Apple/Apple_Resolve.list", rocket + "Apple/Apple.list"]))
-        self.assertEqual(shadowrocket_candidates(clash + "Game/GameDownload/GameDownload.yaml", False),
-                         ("RULE-SET", [rocket + "Game/GameDownload/GameDownload.list"]))
-        self.assertEqual(shadowrocket_candidates(
-            "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/anthropic.mrs", False),
-            (None, []))
+        self.assertEqual(shadowrocket_rule_set(clash + "ChinaMax/ChinaMax_Domain.yaml"),
+                         ("DOMAIN-SET", rocket + "ChinaMax/ChinaMax_Domain.list"))
+        self.assertEqual(shadowrocket_rule_set(clash + "ChinaMax/ChinaMax_IP.yaml"),
+                         ("RULE-SET", rocket + "ChinaMax/ChinaMax.list"))
+        self.assertEqual(shadowrocket_rule_set(clash + "Apple/Apple_Classical.yaml"),
+                         ("RULE-SET", rocket + "Apple/Apple.list"))
+        self.assertEqual(shadowrocket_rule_set(clash + "Game/GameDownload/GameDownload.yaml"),
+                         ("RULE-SET", rocket + "Game/GameDownload/GameDownload.list"))
+        self.assertIsNone(shadowrocket_rule_set(
+            "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/anthropic.mrs"))
 
     def test_shadowrocket_rule_sets_follow_personal_rules(self):
         from build_shadowrocket import load_routing

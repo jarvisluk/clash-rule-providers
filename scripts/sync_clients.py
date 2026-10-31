@@ -14,16 +14,13 @@ the update after this repository is committed and pushed to main.
 
 import argparse
 from datetime import datetime
-from functools import lru_cache
 import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import sys
-from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
-from urllib.request import Request, urlopen
 
 import yaml
 
@@ -41,29 +38,18 @@ PORTABLE = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6"}
 BLACKMATRIX = "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/"
 
 
-def shadowrocket_candidates(url, resolve):
-    """Return the Shadowrocket rule type and candidate URLs, best first, for a
-    blackmatrix7 Clash rule set; other sources have no Shadowrocket equivalent."""
+def shadowrocket_rule_set(url):
+    """Return the Shadowrocket type and URL of a public blackmatrix7 Clash rule
+    set, or None for other sources, which Shadowrocket cannot read."""
     if not url.startswith(BLACKMATRIX + "Clash/"):
-        return None, []
+        return None
     folder, _, file = url[len(BLACKMATRIX + "Clash/"):].rpartition("/")
     base = f"{BLACKMATRIX}Shadowrocket/{folder}/"
     stem = Path(file).stem
     if stem.endswith("_Domain"):
-        return "DOMAIN-SET", [f"{base}{stem}.list"]
-    # X.yaml, X_Classical.yaml and X_IP.yaml all map to X.list, whose IP rules
-    # carry no-resolve; X_Resolve.list is the same without it.
-    name = folder.rpartition("/")[2]
-    return "RULE-SET", ([f"{base}{name}_Resolve.list"] if resolve else []) + [f"{base}{name}.list"]
-
-
-@lru_cache(maxsize=None)
-def reachable(url):
-    try:
-        with urlopen(Request(url, method="HEAD"), timeout=20) as response:
-            return response.status == 200
-    except (HTTPError, URLError):
-        return False
+        return "DOMAIN-SET", f"{base}{stem}.list"
+    # X.yaml, X_Classical.yaml and X_IP.yaml are all covered by X.list.
+    return "RULE-SET", f"{base}{folder.rpartition('/')[2]}.list"
 
 
 def resolve(name, groups, selected, seen=()):
@@ -111,18 +97,11 @@ def snapshot(verge):
                 seen.add(stem)
                 providers.append(entry(fields[2], name=stem))
         elif fields[0] == "RULE-SET":
-            provider = config["rule-providers"][fields[1]]
-            for item in provider.get("payload") or []:
-                if item.split(",")[0] in PORTABLE and tuple(item.split(",")[:2]) not in covered:
-                    inline.append(f"{item} (from {fields[1]})")
-            kind, candidates = shadowrocket_candidates(provider.get("url", ""), "no-resolve" not in fields[3:])
-            url = next((candidate for candidate in candidates if reachable(candidate)), None)
-            if not url:
+            mapped = shadowrocket_rule_set(config["rule-providers"][fields[1]].get("url", ""))
+            if not mapped:
                 unmapped.add(fields[1])
-                continue
-            item = entry(fields[2], type=kind, url=url)
-            if item not in rule_sets:
-                rule_sets.append(item)
+            elif mapped[1] not in (item["url"] for item in rule_sets):
+                rule_sets.append(entry(fields[2], type=mapped[0], url=mapped[1]))
         elif fields[0] in PORTABLE and tuple(fields[:2]) not in covered:
             inline.append(rule)
         elif fields[0] == "GEOIP" and fields[1] == "CN":

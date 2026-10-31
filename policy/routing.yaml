@@ -164,7 +164,7 @@ rule-sets:
   group: 💿 Spotify
   policy: PROXY
 - type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Netflix/Netflix_Resolve.list
+  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Netflix/Netflix.list
   group: 📺 Netflix
   policy: PROXY
 - type: RULE-SET
@@ -184,7 +184,7 @@ rule-sets:
   group: 🎮 OtherGames
   policy: DIRECT
 - type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Steam/Steam_Resolve.list
+  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Steam/Steam.list
   group: 🎮 Steam
   policy: DIRECT
 - type: RULE-SET
@@ -213,54 +213,6 @@ rule-sets:
   policy: DIRECT
 - type: RULE-SET
   url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Hijacking/Hijacking.list
-  group: 💀 Hijacking
-  policy: DIRECT
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Telegram/Telegram_Resolve.list
-  group: 📲 Telegram
-  policy: PROXY
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/YouTube/YouTube_Resolve.list
-  group: 🎬 YouTube
-  policy: PROXY
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/OpenAI/OpenAI_Resolve.list
-  group: 🤖 OpenAI
-  policy: PROXY
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Google/Google_Resolve.list
-  group: 🌐 Google
-  policy: PROXY
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Apple/Apple_Resolve.list
-  group: 🍎 Apple
-  policy: DIRECT
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Twitter/Twitter_Resolve.list
-  group: 📟 Twitter
-  policy: PROXY
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/BiliBili/BiliBili_Resolve.list
-  group: 🎬 BiliBili
-  policy: DIRECT
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Spotify/Spotify_Resolve.list
-  group: 💿 Spotify
-  policy: PROXY
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GlobalMedia/GlobalMedia_Resolve.list
-  group: 📺 GlobalMedia
-  policy: PROXY
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/ChinaMax/ChinaMax_Resolve.list
-  group: 🇨🇳 ChinaWebsites
-  policy: DIRECT
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Lan/Lan_Resolve.list
-  group: DIRECT
-  policy: DIRECT
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Hijacking/Hijacking_Resolve.list
   group: 💀 Hijacking
   policy: DIRECT
 geoip-cn:

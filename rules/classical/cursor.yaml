@@ -4,5 +4,6 @@ payload:
   - DOMAIN-SUFFIX,cursorapi.com
   - DOMAIN-SUFFIX,anysphere.co
   - DOMAIN-SUFFIX,anysphere.cursor.sh
+  - DOMAIN,download.todesktop.com
   - DOMAIN-KEYWORD,cursor
   - DOMAIN-KEYWORD,anysphere
