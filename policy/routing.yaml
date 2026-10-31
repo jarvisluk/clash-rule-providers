@@ -32,9 +32,6 @@ providers:
 - name: onedrive
   group: ☁️ OneDrive
   policy: DIRECT
-- name: paypal
-  group: 💳 PayPal
-  policy: PROXY
 - name: cryptocurrency
   group: 🪙 Cryptocurrency
   policy: PROXY
@@ -44,9 +41,6 @@ providers:
 - name: google
   group: 🌐 Google
   policy: PROXY
-- name: apple
-  group: 🍎 Apple
-  policy: DIRECT
 - name: linkedin
   group: 👩‍💼 LinkedIn
   policy: PROXY
@@ -86,17 +80,14 @@ providers:
 - name: emby
   group: 🎬 Emby
   policy: DIRECT
-- name: globalmedia
-  group: 📺 GlobalMedia
-  policy: PROXY
+- name: hijacking
+  group: 💀 Hijacking
+  policy: REJECT
 - name: chinamax
   group: 🇨🇳 ChinaWebsites
   policy: DIRECT
 - name: lan
   group: DIRECT
-  policy: DIRECT
-- name: hijacking
-  group: 💀 Hijacking
   policy: DIRECT
 rule-sets:
 - type: RULE-SET
@@ -199,6 +190,10 @@ rule-sets:
   url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/GlobalMedia/GlobalMedia.list
   group: 📺 GlobalMedia
   policy: PROXY
+- type: RULE-SET
+  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Hijacking/Hijacking.list
+  group: 💀 Hijacking
+  policy: REJECT
 - type: DOMAIN-SET
   url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/ChinaMax/ChinaMax_Domain.list
   group: 🇨🇳 ChinaWebsites
@@ -210,10 +205,6 @@ rule-sets:
 - type: RULE-SET
   url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Lan/Lan.list
   group: DIRECT
-  policy: DIRECT
-- type: RULE-SET
-  url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Hijacking/Hijacking.list
-  group: 💀 Hijacking
   policy: DIRECT
 geoip-cn:
   group: 🇨🇳 ChinaWebsites

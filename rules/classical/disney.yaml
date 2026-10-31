@@ -1,9 +1,3 @@
 payload:
-  - DOMAIN-SUFFIX,disneyplus.com
-  - DOMAIN-SUFFIX,disney-plus.net
   - DOMAIN-SUFFIX,disneypluscdn.com
-  - DOMAIN-SUFFIX,dssott.com
-  - DOMAIN-SUFFIX,bamgrid.com
-  - DOMAIN-SUFFIX,disney.com
-  - DOMAIN-SUFFIX,disneyjunior.com
   - DOMAIN-KEYWORD,disneyplus
