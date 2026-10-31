@@ -4,6 +4,7 @@ payload:
   - DOMAIN-SUFFIX,lan
   - DOMAIN-SUFFIX,home.arpa
   - DOMAIN-SUFFIX,kooka-haddock.ts.net
+  - DOMAIN-SUFFIX,makima.online
   - DOMAIN-SUFFIX,ibllc.com
   - DOMAIN-SUFFIX,ibllc.com.cn
   - DOMAIN-SUFFIX,interactivebrokers.com
@@ -29,3 +30,4 @@ payload:
   - IP-CIDR6,::1/128,no-resolve
   - IP-CIDR6,fc00::/7,no-resolve
   - IP-CIDR6,fe80::/10,no-resolve
+  - IP-CIDR6,fd7a:115c:a1e0::/48,no-resolve

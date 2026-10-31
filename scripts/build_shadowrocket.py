@@ -13,19 +13,20 @@ PROVIDERS = ROOT / "rules" / "classical"
 OUTPUT = ROOT / "shadowrocket" / "ruleproviders.conf"
 UPDATE_URL = "https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/shadowrocket/ruleproviders.conf"
 
-# Match the initial selections in the user's Clash service groups.
+# Match the current selections in the user's Clash Verge service groups.
 DIRECT = {
-    "servers", "lan", "chinamax", "bilibili", "apple", "onedrive", "paypal",
+    "servers", "lan", "chinamax", "bilibili", "apple", "onedrive",
     "microsoft", "learning", "gamedownload", "gamedownloadcn",
     "hoyoverse", "steam", "steamcn", "emby", "spotify", "hijacking",
 }
+# Clash Verge Script.js order. Only private-network lan moves up, so LAN DNS
+# precedes the plaintext DNS rejection; it does not overlap other providers.
 ORDER = [
-    "servers", "lan", "openai", "claude", "gemini", "cursor", "github", "telegram",
-    "youtube", "cryptocurrency", "google", "tiktok", "netflix", "disney",
-    "globalmedia", "twitter", "spotify", "onedrive", "paypal", "microsoft",
-    "apple", "linkedin", "learning", "bilibili", "gamedownload",
-    "gamedownloadcn", "hoyoverse", "steam", "steamcn", "emby", "chinamax",
-    "hijacking",
+    "servers", "lan", "spotify", "openai", "claude", "gemini", "cursor", "github",
+    "telegram", "youtube", "onedrive", "paypal", "cryptocurrency", "microsoft",
+    "google", "apple", "linkedin", "learning", "twitter", "bilibili", "tiktok",
+    "netflix", "disney", "gamedownload", "gamedownloadcn", "hoyoverse", "steam",
+    "steamcn", "emby", "globalmedia", "chinamax", "hijacking",
 ]
 SUPPORTED = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6"}
 
@@ -45,7 +46,7 @@ def build() -> str:
         "[Rule]",
     ]
     for name in ORDER:
-        if name == "openai":
+        if name == "spotify":
             # Known public DNS endpoints are hijacked above; reject any other
             # plaintext DNS that remains. Private LAN destinations precede this.
             lines.append("DST-PORT,53,REJECT")

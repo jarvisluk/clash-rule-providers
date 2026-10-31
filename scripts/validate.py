@@ -46,6 +46,8 @@ def main() -> int:
         if not isinstance(payload, list):
             errors.append(f"{path}: missing payload list")
             continue
+        for item in {item for item in payload if payload.count(item) > 1}:
+            errors.append(f"{path}: duplicate rule {item!r}")
         for item in payload:
             if not isinstance(item, str):
                 errors.append(f"{path}: payload item is not a string: {item!r}")

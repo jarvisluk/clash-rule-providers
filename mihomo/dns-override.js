@@ -8,18 +8,22 @@ function applyPersonalDnsPolicy(config, appOwnsTun = false) {
     "listen": "127.0.0.1:1053",
     "enhanced-mode": "fake-ip",
     "fake-ip-range": "198.18.0.1/16",
+    "fake-ip-range6": "fdfe:dcba:9876::1/64",
     "fake-ip-filter-mode": "blacklist",
     "fake-ip-filter": [
       "*.lan",
       "*.local",
       "*.arpa",
-      "*.ts.net",
+      "+.ts.net",
       "time.*.com",
       "ntp.*.com",
       "+.market.xiaomi.com",
       "localhost.ptlogin2.qq.com",
-      "*.msftncsi.com",
-      "www.msftconnecttest.com"
+      "+.msftncsi.com",
+      "+.msftconnecttest.com",
+      "localhost",
+      "+.stun.*.*",
+      "+.stun.*.*.*"
     ],
     "default-nameserver": [
       "https://223.5.5.5/dns-query",
@@ -42,7 +46,11 @@ function applyPersonalDnsPolicy(config, appOwnsTun = false) {
       "+.lan": "system",
       "+.local": "system",
       "+.home.arpa": "system",
-      "+.ts.net": "100.100.100.100#DIRECT"
+      "+.ts.net": "100.100.100.100#DIRECT",
+      "geosite:cn": [
+        "https://dns.alidns.com/dns-query#DIRECT",
+        "https://doh.pub/dns-query#DIRECT"
+      ]
     },
     "fallback": [],
     "respect-rules": false,
@@ -61,9 +69,13 @@ function applyPersonalDnsPolicy(config, appOwnsTun = false) {
     ]
   }
 };
-  config.ipv6 = shared.ipv6;
-  // Replace the DNS object: vendor policies, fallbacks and filters must not survive.
-  config.dns = shared.dns;
+  // Clash Verge owns these fields; its GUI applies them after scripts run.
+  // Clash Verge 2.5.6+ counts deleting an app-owned field as an override, so leave them untouched.
+  if (!appOwnsTun) config.ipv6 = shared.ipv6;
+  // Replace vendor DNS while leaving app-managed values to DNS override settings.
+  const appDns = config.dns || {};
+  // When Clash Verge DNS settings are on, every value it already set wins over the shared policy.
+  config.dns = appOwnsTun ? { ...shared.dns, ...appDns } : { ...shared.dns };
   config["proxy-groups"] = (config["proxy-groups"] || [])
     .filter((group) => group.name !== "DNS-Proxy");
   // Clash Verge owns these fields in its GUI and discards script overrides.

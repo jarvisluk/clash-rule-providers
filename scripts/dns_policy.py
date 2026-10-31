@@ -33,6 +33,11 @@ def load_policy(path=None):
             raise ValueError(f"public namespace cannot bypass proxy DNS: {suffix}")
         if resolver != "system" and not ipaddress.ip_address(resolver).is_private and resolver != "100.100.100.100":
             raise ValueError(f"local resolver must be private: {resolver}")
+    for name in policy.get("direct_domains", []):
+        if not isinstance(name, str) or not name.startswith("geosite:"):
+            raise ValueError(f"direct_domains only accepts geosite categories: {name}")
+    if ipaddress.ip_network(policy["fake_ip_range6"], strict=False).version != 6:
+        raise ValueError("fake_ip_range6 must be an IPv6 network")
     for address in policy["shadowrocket_hijack"]:
         ipaddress.ip_address(address)
     return policy
@@ -47,6 +52,7 @@ def mihomo_config(policy):
         "listen": "127.0.0.1:1053",
         "enhanced-mode": "fake-ip",
         "fake-ip-range": "198.18.0.1/16",
+        "fake-ip-range6": policy["fake_ip_range6"],
         "fake-ip-filter-mode": "blacklist",
         "fake-ip-filter": policy["fake_ip_filter"],
         "default-nameserver": policy["bootstrap_resolvers"],
@@ -55,8 +61,9 @@ def mihomo_config(policy):
         "direct-nameserver": direct,
         "direct-nameserver-follow-policy": True,
         "nameserver-policy": {
-            f"+.{suffix}": resolver if resolver == "system" else f"{resolver}#DIRECT"
-            for suffix, resolver in policy["local_resolvers"].items()
+            **{f"+.{suffix}": resolver if resolver == "system" else f"{resolver}#DIRECT"
+               for suffix, resolver in policy["local_resolvers"].items()},
+            **{name: direct.copy() for name in policy.get("direct_domains", [])},
         },
         "fallback": [],
         "respect-rules": False,

@@ -15,9 +15,13 @@ def override_script(config):
     return '''// BEGIN SHARED DNS POLICY (generated; edit policy/dns.yaml)
 function applyPersonalDnsPolicy(config, appOwnsTun = false) {
   const shared = ''' + json.dumps(config, ensure_ascii=False, indent=2) + ''';
-  config.ipv6 = shared.ipv6;
-  // Replace the DNS object: vendor policies, fallbacks and filters must not survive.
-  config.dns = shared.dns;
+  // Clash Verge owns these fields; its GUI applies them after scripts run.
+  // Clash Verge 2.5.6+ counts deleting an app-owned field as an override, so leave them untouched.
+  if (!appOwnsTun) config.ipv6 = shared.ipv6;
+  // Replace vendor DNS while leaving app-managed values to DNS override settings.
+  const appDns = config.dns || {};
+  // When Clash Verge DNS settings are on, every value it already set wins over the shared policy.
+  config.dns = appOwnsTun ? { ...shared.dns, ...appDns } : { ...shared.dns };
   config["proxy-groups"] = (config["proxy-groups"] || [])
     .filter((group) => group.name !== "DNS-Proxy");
   // Clash Verge owns these fields in its GUI and discards script overrides.

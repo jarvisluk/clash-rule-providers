@@ -18,17 +18,24 @@ local_resolvers:
   local: system
   home.arpa: system
   ts.net: 100.100.100.100
+# Domestic domains resolve through direct_resolvers before rule matching.
+direct_domains:
+  - geosite:cn
+fake_ip_range6: fdfe:dcba:9876::1/64
 fake_ip_filter:
   - '*.lan'
   - '*.local'
   - '*.arpa'
-  - '*.ts.net'
+  - '+.ts.net'
   - 'time.*.com'
   - 'ntp.*.com'
   - '+.market.xiaomi.com'
   - localhost.ptlogin2.qq.com
-  - '*.msftncsi.com'
-  - www.msftconnecttest.com
+  - '+.msftncsi.com'
+  - '+.msftconnecttest.com'
+  - localhost
+  - '+.stun.*.*'
+  - '+.stun.*.*.*'
 shadowrocket_hijack:
   - 8.8.8.8
   - 8.8.4.4

@@ -3,4 +3,5 @@ payload:
   - DOMAIN-SUFFIX,emby.media
   - DOMAIN-SUFFIX,emby.tv
   - DOMAIN-SUFFIX,mb3admin.com
+  - DOMAIN-SUFFIX,recmata.net
   - DOMAIN-KEYWORD,emby
