@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Build a Shadowrocket config from this repository's classical providers."""
+"""Build a Shadowrocket config from this repository's classical providers and
+the third-party rule sets recorded in policy/routing.yaml."""
 
 from pathlib import Path
 
@@ -21,28 +22,32 @@ def load_routing():
     """Clash Verge order and policies, snapshotted by scripts/sync_clients.py."""
     routing = yaml.safe_load(ROUTING.read_text())
     providers = routing["providers"]
+    rule_sets = routing["rule-sets"]
     policies = {item["name"]: item["policy"] for item in providers}
     policies["geoip-cn"] = routing["geoip-cn"]["policy"]
     policies["final"] = routing["final"]["policy"]
-    if any(policy not in {"DIRECT", "PROXY", "REJECT"} for policy in policies.values()):
+    if any(policy not in {"DIRECT", "PROXY", "REJECT"}
+           for policy in [*policies.values(), *(item["policy"] for item in rule_sets)]):
         raise ValueError(f"Unsupported policy in {ROUTING}")
+    if any(item["type"] not in {"RULE-SET", "DOMAIN-SET"} for item in rule_sets):
+        raise ValueError(f"Unsupported rule set type in {ROUTING}")
     # Private-network lan moves first, so LAN DNS precedes the plaintext DNS
     # rejection; it does not overlap other providers.
     order = ["lan"] + [item["name"] for item in providers if item["name"] != "lan"]
     if len(order) != len(providers):
         raise ValueError(f"Duplicate or missing lan provider in {ROUTING}")
-    return order, policies
+    return order, policies, rule_sets
 
 
 def build() -> str:
     policy = load_policy()
-    order, policies = load_routing()
+    order, policies, rule_sets = load_routing()
     actual = {path.stem for path in PROVIDERS.glob("*.yaml")}
     if actual != set(order):
         raise ValueError(f"Provider mismatch: missing={actual - set(order)}, extra={set(order) - actual}; "
                          "add the provider to Clash Verge and run scripts/sync_clients.py")
     lines = [
-        "# Generated from jarvisluk/clash-rule-providers rules/classical/*.yaml.",
+        "# Generated from jarvisluk/clash-rule-providers rules/classical/*.yaml and policy/routing.yaml.",
         "# Node subscription is configured separately in Shadowrocket.",
         "[General]",
         f"update-url = {UPDATE_URL}",
@@ -72,6 +77,9 @@ def build() -> str:
                 raise ValueError(f"Unsupported rule in {name}: {raw}")
             fields.insert(2, policies[name])
             lines.append(",".join(fields))
+    if rule_sets:
+        lines.append("# third-party rule sets")
+    lines.extend(f"{item['type']},{item['url']},{item['policy']}" for item in rule_sets)
     lines.extend([f"GEOIP,CN,{policies['geoip-cn']}", f"FINAL,{policies['final']}",
                   "", *shadowrocket_hosts(policy), ""])
     return "\n".join(lines)

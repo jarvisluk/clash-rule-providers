@@ -110,18 +110,31 @@ class DnsPolicyTests(unittest.TestCase):
         self.assertEqual(resolve("💿 Spotify", groups, {"💿 Spotify": "Tier", "Tier": "DIRECT"}), "DIRECT")
         self.assertEqual(resolve("💀 Hijacking", groups, {"💀 Hijacking": "REJECT"}), "REJECT")
 
-    def test_verge_selection_decides_shadowrocket_policy(self):
-        from sync_clients import resolve
-        groups = {g["name"]: g for g in [
-            {"name": "💿 Spotify", "type": "select", "proxies": ["DIRECT", "Tier"]},
-            {"name": "Tier", "type": "select", "proxies": ["Auto", "DIRECT"]},
-            {"name": "Auto", "type": "url-test", "proxies": []},
-            {"name": "💀 Hijacking", "type": "select", "proxies": ["DIRECT", "REJECT"]},
-        ]}
-        self.assertEqual(resolve("💿 Spotify", groups, {}), "DIRECT")
-        self.assertEqual(resolve("💿 Spotify", groups, {"💿 Spotify": "Tier"}), "PROXY")
-        self.assertEqual(resolve("💿 Spotify", groups, {"💿 Spotify": "Tier", "Tier": "DIRECT"}), "DIRECT")
-        self.assertEqual(resolve("💀 Hijacking", groups, {"💀 Hijacking": "REJECT"}), "REJECT")
+    def test_clash_rule_sets_map_to_shadowrocket_lists(self):
+        from sync_clients import BLACKMATRIX, shadowrocket_candidates
+        clash, rocket = BLACKMATRIX + "Clash/", BLACKMATRIX + "Shadowrocket/"
+        self.assertEqual(shadowrocket_candidates(clash + "ChinaMax/ChinaMax_Domain.yaml", False),
+                         ("DOMAIN-SET", [rocket + "ChinaMax/ChinaMax_Domain.list"]))
+        self.assertEqual(shadowrocket_candidates(clash + "ChinaMax/ChinaMax_IP.yaml", False),
+                         ("RULE-SET", [rocket + "ChinaMax/ChinaMax.list"]))
+        self.assertEqual(shadowrocket_candidates(clash + "Apple/Apple_Classical.yaml", True),
+                         ("RULE-SET", [rocket + "Apple/Apple_Resolve.list", rocket + "Apple/Apple.list"]))
+        self.assertEqual(shadowrocket_candidates(clash + "Game/GameDownload/GameDownload.yaml", False),
+                         ("RULE-SET", [rocket + "Game/GameDownload/GameDownload.list"]))
+        self.assertEqual(shadowrocket_candidates(
+            "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/anthropic.mrs", False),
+            (None, []))
+
+    def test_shadowrocket_rule_sets_follow_personal_rules(self):
+        from build_shadowrocket import load_routing
+        _, _, rule_sets = load_routing()
+        lines = build().splitlines()
+        sets = [i for i, line in enumerate(lines) if line.startswith(("RULE-SET,", "DOMAIN-SET,"))]
+        self.assertEqual(len(sets), len(rule_sets))
+        self.assertEqual(sets, list(range(sets[0], sets[0] + len(sets))))
+        self.assertTrue(lines[sets[-1] + 1].startswith("GEOIP,CN,"))
+        self.assertTrue(lines[sets[0] - 2].startswith(("DOMAIN", "IP-CIDR")))
+        self.assertTrue(any("ChinaMax_Domain.list" in line for line in lines))
 
 
 if __name__ == "__main__":

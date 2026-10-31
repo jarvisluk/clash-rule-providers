@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Sync every client from Clash Verge, the reference client, in one run.
 
-1. Snapshot Verge's personal rule order and current group policies into
-   policy/routing.yaml (Shadowrocket is built from it, also in CI).
+1. Snapshot Verge's rule order and current group policies into
+   policy/routing.yaml (Shadowrocket is built from it, also in CI), mapping
+   blackmatrix7 rule sets to their Shadowrocket lists.
 2. Regenerate DNS and Shadowrocket outputs and run all validation.
 3. Install FlClash's override script and the shared DNS into Verge and FlClash.
 4. Export Clash Mi and Clash.app configurations into Verge's directory.
@@ -13,13 +14,16 @@ the update after this repository is committed and pushed to main.
 
 import argparse
 from datetime import datetime
+from functools import lru_cache
 import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import sys
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
 
 import yaml
 
@@ -34,6 +38,32 @@ VERGE = Path.home() / "Library/Application Support/io.github.clash-verge-rev.cla
 FLCLASH = Path.home() / "Library/Application Support/com.follow.clash"
 PERSONAL_URL = "/clash-rule-providers@main/rules/classical/"
 PORTABLE = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6"}
+BLACKMATRIX = "https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/"
+
+
+def shadowrocket_candidates(url, resolve):
+    """Return the Shadowrocket rule type and candidate URLs, best first, for a
+    blackmatrix7 Clash rule set; other sources have no Shadowrocket equivalent."""
+    if not url.startswith(BLACKMATRIX + "Clash/"):
+        return None, []
+    folder, _, file = url[len(BLACKMATRIX + "Clash/"):].rpartition("/")
+    base = f"{BLACKMATRIX}Shadowrocket/{folder}/"
+    stem = Path(file).stem
+    if stem.endswith("_Domain"):
+        return "DOMAIN-SET", [f"{base}{stem}.list"]
+    # X.yaml, X_Classical.yaml and X_IP.yaml all map to X.list, whose IP rules
+    # carry no-resolve; X_Resolve.list is the same without it.
+    name = folder.rpartition("/")[2]
+    return "RULE-SET", ([f"{base}{name}_Resolve.list"] if resolve else []) + [f"{base}{name}.list"]
+
+
+@lru_cache(maxsize=None)
+def reachable(url):
+    try:
+        with urlopen(Request(url, method="HEAD"), timeout=20) as response:
+            return response.status == 200
+    except (HTTPError, URLError):
+        return False
 
 
 def resolve(name, groups, selected, seen=()):
@@ -68,24 +98,38 @@ def snapshot(verge):
     def entry(group, **extra):
         return {**extra, "group": group, "policy": resolve(group, groups, selected)}
 
-    providers, seen, inline, external = [], set(), [], set()
+    providers, seen, inline, rule_sets, unmapped = [], set(), [], [], set()
     routing = {}
     for rule in config["rules"]:
         fields = rule.split(",")
         if fields[0] == "RULE-SET" and fields[1] in personal:
+            if rule_sets:
+                raise SystemExit(f"{rule} follows a third-party rule set; Shadowrocket lists "
+                                 "personal providers first, so move it up in Clash Verge")
             stem = personal[fields[1]]
             if stem not in seen:
                 seen.add(stem)
                 providers.append(entry(fields[2], name=stem))
         elif fields[0] == "RULE-SET":
-            external.add(fields[1])
+            provider = config["rule-providers"][fields[1]]
+            for item in provider.get("payload") or []:
+                if item.split(",")[0] in PORTABLE and tuple(item.split(",")[:2]) not in covered:
+                    inline.append(f"{item} (from {fields[1]})")
+            kind, candidates = shadowrocket_candidates(provider.get("url", ""), "no-resolve" not in fields[3:])
+            url = next((candidate for candidate in candidates if reachable(candidate)), None)
+            if not url:
+                unmapped.add(fields[1])
+                continue
+            item = entry(fields[2], type=kind, url=url)
+            if item not in rule_sets:
+                rule_sets.append(item)
         elif fields[0] in PORTABLE and tuple(fields[:2]) not in covered:
             inline.append(rule)
         elif fields[0] == "GEOIP" and fields[1] == "CN":
             routing["geoip-cn"] = entry(fields[2])
         elif fields[0] == "MATCH":
             routing["final"] = entry(fields[1])
-    return {"providers": providers, **routing}, inline, sorted(external)
+    return {"providers": providers, "rule-sets": rule_sets, **routing}, inline, sorted(unmapped)
 
 
 def write_if_changed(path, content, backup=True):
@@ -119,9 +163,10 @@ def main():
     parser.add_argument("--flclash-dir", type=Path, default=FLCLASH)
     args = parser.parse_args()
 
-    routing, inline, external = snapshot(args.verge_dir)
+    routing, inline, unmapped = snapshot(args.verge_dir)
     header = ("# Generated by scripts/sync_clients.py from Clash Verge; do not edit.\n"
-              "# Personal providers in Verge rule order, with the policy each group currently reaches.\n")
+              "# Personal providers, then Shadowrocket equivalents of third-party rule sets, in Verge\n"
+              "# rule order, with the policy each group currently reaches.\n")
     write_if_changed(ROUTING, header + yaml.safe_dump(routing, allow_unicode=True, sort_keys=False),
                      backup=False)
 
@@ -152,8 +197,10 @@ def main():
     run("ruby", "scripts/build_clash_mi_subscription_override.rb", env=env)
     run("node", "scripts/build_clash_app_config.js", env=env)
 
-    print(f"\nShadowrocket: {len(routing['providers'])} personal providers synced; "
-          f"{len(external)} third-party rule sets stay Clash-only.")
+    print(f"\nShadowrocket: {len(routing['providers'])} personal providers and "
+          f"{len(routing['rule-sets'])} third-party rule sets synced.")
+    if unmapped:
+        print("Clash-only rule sets (no Shadowrocket equivalent): " + ", ".join(unmapped))
     if inline:
         print("Inline Clash rules missing from personal providers (Shadowrocket lacks them):")
         print("\n".join(f"  {rule}" for rule in inline))
