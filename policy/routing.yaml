@@ -7,7 +7,7 @@ providers:
   policy: DIRECT
 - name: spotify
   group: 💿 Spotify
-  policy: PROXY
+  policy: DIRECT
 - name: openai
   group: 🤖 OpenAI
   policy: PROXY
@@ -153,7 +153,7 @@ rule-sets:
 - type: RULE-SET
   url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Spotify/Spotify.list
   group: 💿 Spotify
-  policy: PROXY
+  policy: DIRECT
 - type: RULE-SET
   url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Netflix/Netflix.list
   group: 📺 Netflix
