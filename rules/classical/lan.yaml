@@ -11,6 +11,8 @@ payload:
   - DOMAIN-SUFFIX,interactivebrokers.com.hk
   - DOMAIN-SUFFIX,ibkr.com
   - DOMAIN-SUFFIX,opentunnel.xyz
+  - DOMAIN-SUFFIX,argotunnel.com
+  - DOMAIN-SUFFIX,cloudflarestunnel.com
   - IP-CIDR,103.38.90.0/23,no-resolve
   - IP-CIDR,202.1.6.0/24,no-resolve
   - IP-CIDR,64.190.196.0/23,no-resolve
