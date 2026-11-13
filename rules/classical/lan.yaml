@@ -32,3 +32,4 @@ payload:
   - IP-CIDR6,fc00::/7,no-resolve
   - IP-CIDR6,fe80::/10,no-resolve
   - IP-CIDR6,fd7a:115c:a1e0::/48,no-resolve
+  - DST-PORT,7844

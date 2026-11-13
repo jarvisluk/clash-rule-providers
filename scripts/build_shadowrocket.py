@@ -15,7 +15,7 @@ OUTPUT = ROOT / "shadowrocket" / "ruleproviders.conf"
 UPDATE_URL = "https://raw.githubusercontent.com/jarvisluk/clash-rule-providers/main/shadowrocket/ruleproviders.conf"
 
 ROUTING = ROOT / "policy" / "routing.yaml"
-SUPPORTED = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6"}
+SUPPORTED = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD", "IP-CIDR", "IP-CIDR6", "DST-PORT"}
 
 
 def load_routing():
